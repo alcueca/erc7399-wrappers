@@ -32,7 +32,7 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
     using TransferHelper for IERC20;
     using RevertMsgExtractor for bytes;
 
-    bytes32 constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
+    bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
     mapping(IERC20 => IERC3156FlashLender) public lenders;
     bytes internal _callbackResult;
@@ -43,7 +43,7 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
      */
     constructor(
         IERC20[] memory assets_,
-        IERC20[] memory lenders_
+        IERC3156FlashLender[] memory lenders_
     ) {
         require (assets_.length == lenders_.length, "Arrays must be the same length");
         for (uint256 i = 0; i < assets_.length; i++) {
@@ -122,11 +122,9 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
         require(msg.sender == address(lenders[IERC20(token)]), "Unknown lender");
         IERC3156FlashLender lender = IERC3156FlashLender(msg.sender);
 
-        // We pass the loan to the loan receiver
-        bytes memory result = _callFromData(IERC20(token), amount, fee, data);
-
-        // We store the callback result in storage for the the ERC3156++ flashLoan function to recover it.
-        _callbackResult = result;
+        // We pass the loan to the loan receiver and we store the callback result in storage for the the ERC3156++ flashLoan function to recover it.
+        _callbackResult = _callFromData(IERC20(token), amount, fee, data);
+        _callbackResult = abi.encode(CALLBACK_SUCCESS); // TODO: Hijacking the callback result to see where the OOG error comes from
 
         IERC20(token).approve(address(lender), amount + fee);
 
