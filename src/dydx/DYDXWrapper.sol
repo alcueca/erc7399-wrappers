@@ -95,8 +95,8 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback
     ) external returns (bytes memory) {
         DYDXDataTypes.ActionArgs[] memory operations = new DYDXDataTypes.ActionArgs[](3);
-        operations[0] = getWithdrawAction(asset, amount);
-        operations[1] = getCallAction(abi.encode(msg.sender, loanReceiver, asset, amount, callback.address, callback.selector, userData));
+        operations[0] = getWithdrawAction(loanReceiver, asset, amount);
+        operations[1] = getCallAction(abi.encode(msg.sender, asset, amount, callback.address, callback.selector, userData));
         operations[2] = getDepositAction(asset, amount + flashFee(asset, amount));
         DYDXDataTypes.AccountInfo[] memory accountInfos = new DYDXDataTypes.AccountInfo[](1);
         accountInfos[0] = getAccountInfo();
@@ -126,13 +126,13 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
 
     /// @dev Internal function to transfer to the loan receiver and the callback. It is used to avoid stack too deep.
     function _callFromData(bytes memory data) internal returns(bytes memory) {
-        (address initiator, address loanReceiver, IERC20 asset, uint256 amount, address callbackReceiver, bytes4 callbackSelector, bytes memory userData) = 
-            abi.decode(data, (address, address, IERC20, uint256, address, bytes4, bytes));
+        (address initiator, IERC20 asset, uint256 amount, address callbackReceiver, bytes4 callbackSelector, bytes memory userData) = 
+            abi.decode(data, (address, IERC20, uint256, address, bytes4, bytes));
 
         uint256 fee = flashFee(asset, amount);
 
         // We pass the loan to the loan receiver
-        asset.safeTransfer(loanReceiver, amount);
+        // asset.safeTransfer(loanReceiver, amount);
         (bool success, bytes memory result) = callbackReceiver.call(abi.encodeWithSelector(
             callbackSelector,
             initiator, // initiator
@@ -157,7 +157,7 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         });
     }
 
-    function getWithdrawAction(IERC20 asset, uint256 amount)
+    function getWithdrawAction(address loanReceiver, IERC20 asset,uint256 amount)
     internal
     view
     returns (DYDXDataTypes.ActionArgs memory)
@@ -173,7 +173,7 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
             }),
             primaryMarketId: assetAddressToMarketId[asset],
             secondaryMarketId: NULL_MARKET_ID,
-            otherAddress: address(this), // TODO: Would this send the assets straight to `loanReceiver`?
+            otherAddress: loanReceiver,
             otherAccountId: NULL_ACCOUNT_ID,
             data: NULL_DATA
         });
