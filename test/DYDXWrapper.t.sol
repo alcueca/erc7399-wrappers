@@ -4,19 +4,19 @@ pragma solidity >=0.8.19 <0.9.0;
 import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
-import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 
 import { FlashBorrower } from "../src/test/FlashBorrower.sol";
-import { IERC20, ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
+import { IERC20, DYDXWrapper } from "../src/dydx/DYDXWrapper.sol";
+import { SoloMarginLike } from "../src/dydx/interfaces/SoloMarginLike.sol";
 
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract ERC3156WrapperTest is PRBTest, StdCheats {
-    ERC3156Wrapper internal wrapper;
+    DYDXWrapper internal wrapper;
     FlashBorrower internal borrower;
     IERC20 internal dai;
-    IERC3156FlashLender internal makerFlash;
+    SoloMarginLike internal soloMargin;
 
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
@@ -27,14 +27,10 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         }
 
         vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 16_428_000 });
-        makerFlash = IERC3156FlashLender(0x60744434d6339a6B27d73d9Eda62b6F66a0a04FA);
+        soloMargin = SoloMarginLike(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
         dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
-        IERC20[] memory assets = new IERC20[](1);
-        assets[0] = dai;
-        IERC3156FlashLender[] memory lenders = new IERC3156FlashLender[](1);
-        lenders[0] = makerFlash;
-        wrapper = new ERC3156Wrapper(assets, lenders);
+        wrapper = new DYDXWrapper(soloMargin);
         borrower = new FlashBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
@@ -42,7 +38,7 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
     function test_flashFee() external {
         console2.log("test_flashFee");
-        assertEq(wrapper.flashFee(dai, 1e18), 0, "Fee not zero");
+        assertEq(wrapper.flashFee(dai, 1e18), 2, "Fee not two");
         assertEq(wrapper.flashFee(dai, type(uint256).max), type(uint256).max, "Fee not max");
     }
 
