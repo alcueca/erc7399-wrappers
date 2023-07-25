@@ -8,6 +8,7 @@ import { RevertMsgExtractor } from "../utils/RevertMsgExtractor.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 
+
 library TransferHelper {
     /// @notice Transfers tokens from msg.sender to a recipient
     /// @dev Errors with the underlying revert message if transfer fails
@@ -124,7 +125,6 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
 
         // We pass the loan to the loan receiver and we store the callback result in storage for the the ERC3156++ flashLoan function to recover it.
         _callbackResult = _callFromData(IERC20(token), amount, fee, data);
-        _callbackResult = abi.encode(CALLBACK_SUCCESS); // TODO: Hijacking the callback result to see where the OOG error comes from
 
         IERC20(token).approve(address(lender), amount + fee);
 
@@ -147,7 +147,8 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
             fee, // fee
             userData // data
         ));
-        require(success, RevertMsgExtractor.getRevertMsg(result));
-        return result;
+        
+        if(!success) revert(RevertMsgExtractor.getRevertMsg(result));
+        return abi.decode(result, (bytes));
     }
 }

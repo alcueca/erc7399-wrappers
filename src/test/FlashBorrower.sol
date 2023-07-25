@@ -12,6 +12,7 @@ contract LoanReceiver {
 }
 
 contract FlashBorrower {
+    bytes32 public constant ERC3156PP_CALLBACK_SUCCESS = keccak256("ERC3156PP_CALLBACK_SUCCESS");
     IERC3156PPFlashLender lender;
     LoanReceiver loanReceiver;
 
@@ -30,6 +31,7 @@ contract FlashBorrower {
     function onFlashLoan(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata data) external returns(bytes memory) {
         require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
         require(initiator == address(this), "FlashBorrower: External loan initiator");
+
         flashInitiator = initiator;
         flashAsset = asset;
         flashAmount = amount;
@@ -38,7 +40,7 @@ contract FlashBorrower {
         flashBalance = IERC20(asset).balanceOf(address(this));
         asset.transfer(paymentReceiver, amount + fee);
 
-        return ""; // abi.encode(data, paymentReceiver, fee); // TODO: Returning anything here causes a revert
+        return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
 
     function onSteal(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata data) external returns(bytes memory) {
@@ -51,7 +53,7 @@ contract FlashBorrower {
         
         // do nothing
 
-        return abi.encode(data, paymentReceiver, fee);
+        return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
 
     function onReenter(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata data) external returns(bytes memory) {
@@ -69,7 +71,7 @@ contract FlashBorrower {
         flashAmount += amount;
         flashFee += fee;
 
-        return abi.encode(data, paymentReceiver, fee);
+        return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
 
     function flashBorrow(IERC20 asset, uint256 amount) public returns(bytes memory) {
