@@ -100,7 +100,9 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
         // We get funds from an ERC3156 lender to serve the ERC3156++ flash loan in our ERC3156 callback
         lender.flashLoan(this, address(asset), amount, data);
 
-        return _callbackResult;
+        bytes memory result = _callbackResult;
+        _callbackResult = ""; // TODO: Confirm that this deletes the storage variable
+        return result;
     }
 
     /**

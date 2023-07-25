@@ -28,7 +28,7 @@ contract FlashBorrower {
     }
 
     /// @dev ERC-3156++ Flash loan callback
-    function onFlashLoan(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata data) external returns(bytes memory) {
+    function onFlashLoan(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata) external returns(bytes memory) {
         require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
         require(initiator == address(this), "FlashBorrower: External loan initiator");
 
@@ -43,7 +43,7 @@ contract FlashBorrower {
         return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
 
-    function onSteal(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata data) external returns(bytes memory) {
+    function onSteal(address initiator, address, IERC20 asset, uint256 amount, uint256 fee, bytes calldata) external returns(bytes memory) {
         require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
         require(initiator == address(this), "FlashBorrower: External loan initiator");
         flashInitiator = initiator;
@@ -56,7 +56,7 @@ contract FlashBorrower {
         return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
 
-    function onReenter(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata data) external returns(bytes memory) {
+    function onReenter(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata) external returns(bytes memory) {
         require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
         require(initiator == address(this), "FlashBorrower: External loan initiator");
         flashInitiator = initiator;
