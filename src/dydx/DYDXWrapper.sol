@@ -5,28 +5,11 @@ pragma solidity ^0.8.0;
 import { SoloMarginLike } from "./interfaces/SoloMarginLike.sol";
 import { DYDXFlashBorrowerLike } from "./interfaces/DYDXFlashBorrowerLike.sol";
 import { DYDXDataTypes } from "./libraries/DYDXDataTypes.sol";
-import { RevertMsgExtractor } from "../utils/RevertMsgExtractor.sol";
+import { TransferHelper } from "../utils/TransferHelper.sol";
 import { FunctionCodec } from "../utils/FunctionCodec.sol";
 
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
-
-
-library TransferHelper {
-    /// @notice Transfers tokens from msg.sender to a recipient
-    /// @dev Errors with the underlying revert message if transfer fails
-    /// @param token The contract address of the token which will be transferred
-    /// @param to The recipient of the transfer
-    /// @param value The value of the transfer
-    function safeTransfer(
-        IERC20 token,
-        address to,
-        uint256 value
-    ) internal {
-        (bool success, bytes memory data) = address(token).call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
-        if (!(success && (data.length == 0 || abi.decode(data, (bool))))) revert(RevertMsgExtractor.getRevertMsg(data));
-    }
-}
 
 
 contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {

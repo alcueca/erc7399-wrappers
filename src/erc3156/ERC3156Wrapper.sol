@@ -3,28 +3,12 @@ pragma solidity ^0.8.0;
 
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 import { IERC3156FlashBorrower } from "lib/erc3156/contracts/interfaces/IERC3156FlashBorrower.sol";
-import { RevertMsgExtractor } from "../utils/RevertMsgExtractor.sol";
+import { TransferHelper } from "../utils/TransferHelper.sol";
 import { FunctionCodec } from "../utils/FunctionCodec.sol";
 
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 
-
-library TransferHelper {
-    /// @notice Transfers assets from msg.sender to a recipient
-    /// @dev Errors with the underlying revert message if transfer fails
-    /// @param asset The contract address of the asset which will be transferred
-    /// @param to The recipient of the transfer
-    /// @param value The value of the transfer
-    function safeTransfer(
-        IERC20 asset,
-        address to,
-        uint256 value
-    ) internal {
-        (bool success, bytes memory data) = address(asset).call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
-        if (!(success && (data.length == 0 || abi.decode(data, (bool))))) revert(RevertMsgExtractor.getRevertMsg(data));
-    }
-}
 
 /**
  * @author Alberto Cuesta Cañada
@@ -32,7 +16,6 @@ library TransferHelper {
  */
 contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
     using TransferHelper for IERC20;
-    using RevertMsgExtractor for bytes;
     using FunctionCodec for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
     using FunctionCodec for bytes24;
 
