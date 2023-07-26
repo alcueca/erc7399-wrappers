@@ -12,28 +12,28 @@ contract FunctionCodecTest is PRBTest, StdCheats {
         return "Hello, world!";
      }
 
-    function testEncodeParams() public {
+    function test_encodeParams() public {
         assertEq(
             FunctionCodec.encodeParams(address(this), this.mockCallback.selector),
             bytes24(abi.encodePacked(address(this), this.mockCallback.selector))
         );
     }
 
-    function testDecodeParams() public {
+    function test_decodeParams() public {
         bytes24 encoded = FunctionCodec.encodeParams(address(this), this.mockCallback.selector);
         (address contractAddr, bytes4 selector) = FunctionCodec.decodeParams(encoded);
         assertEq(contractAddr, address(this));
         assertEq(selector, this.mockCallback.selector);
     }
 
-    function testEncodeFunction() public {
+    function test_encodeFunction() public {
         bytes24 encoded = FunctionCodec.encodeFunction(this.mockCallback);
         assertEq(encoded, bytes24(abi.encodePacked(address(this), this.mockCallback.selector)));
     }
 
-    function testDecodeFunction() public {
+    function test_decodeFunction() public {
         function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f = FunctionCodec.decodeFunction(address(this), this.mockCallback.selector);
-        
+
         address a = address(1);
         IERC20 i = IERC20(a);
         uint256 u = 1;
@@ -41,7 +41,7 @@ contract FunctionCodecTest is PRBTest, StdCheats {
         assertEq(f(a, a, i, u, u, b), this.mockCallback(a, a, i, u, u, b));
     }
 
-    function testDecodeFunction2() public {
+    function test_decodeFunction2() public {
         bytes24 encoded = FunctionCodec.encodeFunction(this.mockCallback);
         function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f = FunctionCodec.decodeFunction(encoded);
 
