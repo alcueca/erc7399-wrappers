@@ -6,6 +6,7 @@ import { SoloMarginLike } from "./interfaces/SoloMarginLike.sol";
 import { DYDXFlashBorrowerLike } from "./interfaces/DYDXFlashBorrowerLike.sol";
 import { DYDXDataTypes } from "./libraries/DYDXDataTypes.sol";
 import { RevertMsgExtractor } from "../utils/RevertMsgExtractor.sol";
+import { FunctionCodec } from "../utils/FunctionCodec.sol";
 
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
@@ -30,6 +31,8 @@ library TransferHelper {
 
 contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
     using TransferHelper for IERC20;
+    using FunctionCodec for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
+    using FunctionCodec for bytes24;
 
     uint256 internal NULL_ACCOUNT_ID = 0;
     uint256 internal NULL_MARKET_ID = 0;
@@ -73,14 +76,14 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
     /// @param loanReceiver The address receiving the flash loan
     /// @param asset The asset to be loaned
     /// @param amount The amount to loaned
-    /// @param userData The ABI encoded user data
+    /// @param initiatorData The ABI encoded initiator data
     /// @param callback The address and signature of the callback function
     /// @return result ABI encoded result of the callback
     function flashLoan(
         address loanReceiver,
         IERC20 asset,
         uint256 amount,
-        bytes calldata userData,
+        bytes calldata initiatorData,
         /// @dev callback.
         /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is the signature of callback function.
         /// The arguments in the callback function are fixed.
@@ -96,7 +99,7 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
     ) external returns (bytes memory) {
         DYDXDataTypes.ActionArgs[] memory operations = new DYDXDataTypes.ActionArgs[](3);
         operations[0] = getWithdrawAction(loanReceiver, asset, amount);
-        operations[1] = getCallAction(abi.encode(msg.sender, asset, amount, callback.address, callback.selector, userData));
+        operations[1] = getCallAction(abi.encode(msg.sender, asset, amount, callback.encodeFunction(), initiatorData));
         operations[2] = getDepositAction(asset, amount + flashFee(asset, amount));
         DYDXDataTypes.AccountInfo[] memory accountInfos = new DYDXDataTypes.AccountInfo[](1);
         accountInfos[0] = getAccountInfo();
@@ -126,28 +129,17 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
 
     /// @dev Internal function to transfer to the loan receiver and the callback. It is used to avoid stack too deep.
     function _callFromData(bytes memory data) internal returns(bytes memory) {
-        (address initiator, IERC20 asset, uint256 amount, address callbackReceiver, bytes4 callbackSelector, bytes memory userData) = 
-            abi.decode(data, (address, IERC20, uint256, address, bytes4, bytes));
+        (address initiator, IERC20 asset, uint256 amount, bytes24 encodedCallback, bytes memory initiatorData) = 
+            abi.decode(data, (address, IERC20, uint256, bytes24, bytes));
 
         uint256 fee = flashFee(asset, amount);
 
-        // We pass the loan to the loan receiver
-        // asset.safeTransfer(loanReceiver, amount);
-        (bool success, bytes memory result) = callbackReceiver.call(abi.encodeWithSelector(
-            callbackSelector,
-            initiator, // initiator
-            address(this), // paymentReceiver
-            asset, // asset
-            amount, // amount
-            fee, // fee
-            userData // data
-        ));
-        if(!success) revert(RevertMsgExtractor.getRevertMsg(result));
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback = encodedCallback.decodeFunction();
         
         // Approve the SoloMargin contract allowance to *pull* the owed amount
         IERC20(asset).approve(address(soloMargin), amount + fee);            
 
-        return abi.decode(result, (bytes));
+        return callback(initiator, address(this), asset, amount, fee, initiatorData);
     }
 
     function getAccountInfo() internal view returns (DYDXDataTypes.AccountInfo memory) {

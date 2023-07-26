@@ -4,23 +4,24 @@ pragma solidity ^0.8.0;
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 import { IERC3156FlashBorrower } from "lib/erc3156/contracts/interfaces/IERC3156FlashBorrower.sol";
 import { RevertMsgExtractor } from "../utils/RevertMsgExtractor.sol";
+import { FunctionCodec } from "../utils/FunctionCodec.sol";
 
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 
 
 library TransferHelper {
-    /// @notice Transfers tokens from msg.sender to a recipient
+    /// @notice Transfers assets from msg.sender to a recipient
     /// @dev Errors with the underlying revert message if transfer fails
-    /// @param token The contract address of the token which will be transferred
+    /// @param asset The contract address of the asset which will be transferred
     /// @param to The recipient of the transfer
     /// @param value The value of the transfer
     function safeTransfer(
-        IERC20 token,
+        IERC20 asset,
         address to,
         uint256 value
     ) internal {
-        (bool success, bytes memory data) = address(token).call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
+        (bool success, bytes memory data) = address(asset).call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         if (!(success && (data.length == 0 || abi.decode(data, (bool))))) revert(RevertMsgExtractor.getRevertMsg(data));
     }
 }
@@ -32,6 +33,8 @@ library TransferHelper {
 contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
     using TransferHelper for IERC20;
     using RevertMsgExtractor for bytes;
+    using FunctionCodec for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
+    using FunctionCodec for bytes24;
 
     bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
@@ -71,14 +74,14 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
     /// @param loanReceiver The address receiving the flash loan
     /// @param asset The asset to be loaned
     /// @param amount The amount to loaned
-    /// @param userData The ABI encoded user data
+    /// @param initiatorData The ABI encoded initiator data
     /// @param callback The address and signature of the callback function
     /// @return result ABI encoded result of the callback
     function flashLoan(
         address loanReceiver,
         IERC20 asset,
         uint256 amount,
-        bytes calldata userData,
+        bytes calldata initiatorData,
         /// @dev callback.
         /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is the signature of callback function.
         /// The arguments in the callback function are fixed.
@@ -95,7 +98,7 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
         IERC3156FlashLender lender = lenders[asset];
         require (address(lender) != address(0), "Unsupported currency");
 
-        bytes memory data = abi.encode(msg.sender, loanReceiver, callback.address, callback.selector, userData);
+        bytes memory data = abi.encode(msg.sender, loanReceiver, callback.encodeFunction(), initiatorData);
 
         // We get funds from an ERC3156 lender to serve the ERC3156++ flash loan in our ERC3156 callback
         lender.flashLoan(this, address(asset), amount, data);
@@ -108,49 +111,42 @@ contract ERC3156Wrapper is IERC3156PPFlashLender, IERC3156FlashBorrower {
     /**
      * @dev Receive a flash loan.
      * @param initiator The initiator of the loan.
-     * @param token The loan currency.
-     * @param amount The amount of tokens lent.
-     * @param fee The additional amount of tokens to repay.
-     * @param data Arbitrary data structure, intended to contain user-defined parameters.
+     * @param asset The loan currency.
+     * @param amount The amount of assets lent.
+     * @param fee The additional amount of assets to repay.
+     * @param data Arbitrary data structure, intended to contain initiator-defined parameters.
      * @return The keccak256 hash of "ERC3156FlashBorrower.onFlashLoan"
      */
     function onFlashLoan(
         address initiator,
-        address token,
+        address asset,
         uint256 amount,
         uint256 fee,
         bytes calldata data
     ) external returns (bytes32) {
         require(initiator == address(this), "FlashMinter: External loan initiator");
-        require(msg.sender == address(lenders[IERC20(token)]), "Unknown lender");
+        require(msg.sender == address(lenders[IERC20(asset)]), "Unknown lender");
         IERC3156FlashLender lender = IERC3156FlashLender(msg.sender);
 
         // We pass the loan to the loan receiver and we store the callback result in storage for the the ERC3156++ flashLoan function to recover it.
-        _callbackResult = _callFromData(IERC20(token), amount, fee, data);
+        _callbackResult = _callFromData(IERC20(asset), amount, fee, data);
 
-        IERC20(token).approve(address(lender), amount + fee);
+        IERC20(asset).approve(address(lender), amount + fee);
 
         return CALLBACK_SUCCESS;
     }
 
     /// @dev Internal function to transfer to the loan receiver and the callback. It is used to avoid stack too deep.
-    function _callFromData(IERC20 token, uint256 amount, uint256 fee, bytes memory data) internal returns(bytes memory) {
-        (address user, address loanReceiver, address callbackReceiver, bytes4 callbackSelector, bytes memory userData) = 
-            abi.decode(data, (address, address, address, bytes4, bytes));
+    function _callFromData(IERC20 asset, uint256 amount, uint256 fee, bytes memory data) internal returns(bytes memory) {
+        (address initiator, address loanReceiver, bytes24 encodedCallback, bytes memory initiatorData) = 
+            abi.decode(data, (address, address, bytes24, bytes));
+
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback = encodedCallback.decodeFunction();
 
         // We pass the loan to the loan receiver
-        IERC20(token).safeTransfer(loanReceiver, amount);
-        (bool success, bytes memory result) = callbackReceiver.call(abi.encodeWithSelector(
-            callbackSelector,
-            user, // initiator
-            address(this), // paymentReceiver
-            token, // asset
-            amount, // amount
-            fee, // fee
-            userData // data
-        ));
-        
-        if(!success) revert(RevertMsgExtractor.getRevertMsg(result));
-        return abi.decode(result, (bytes));
+        IERC20(asset).safeTransfer(loanReceiver, amount);
+
+        // We call the callback
+        return callback(initiator, address(this), asset, amount, fee, initiatorData);
     }
 }
