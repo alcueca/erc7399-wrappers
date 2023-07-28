@@ -28,7 +28,7 @@ contract ERC7399UniswapV3Test is PRBTest, StdCheats {
         }
 
         vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 17_784_898 });
-        factory = IUniswapV3Factory(0x60744434d6339a6B27d73d9Eda62b6F66a0a04FA);
+        factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
         dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
         weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
@@ -40,7 +40,7 @@ contract ERC7399UniswapV3Test is PRBTest, StdCheats {
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
     function test_flashFee() external {
         console2.log("test_flashFee");
-        assertEq(wrapper.flashFee(dai, 1e18), 1e18 * 3 / 1000, "Fee not 3/1000");
+        assertEq(wrapper.flashFee(dai, 1e18), 3018081325219389, "Fee not exact");
         assertEq(wrapper.flashFee(dai, type(uint256).max), type(uint256).max, "Fee not max");
     }
 
