@@ -6,14 +6,14 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { FlashBorrower } from "../src/test/FlashBorrower.sol";
-import { IERC20, ERC7399UniswapV3 } from "../src/uniswapV3/ERC7399UniswapV3.sol";
+import { IERC20, UniswapV3Wrapper } from "../src/uniswapV3/UniswapV3Wrapper.sol";
 import { IUniswapV3Factory } from "../src/uniswapV3/interfaces/IUniswapV3Factory.sol";
 
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract ERC7399UniswapV3Test is PRBTest, StdCheats {
-    ERC7399UniswapV3 internal wrapper;
+contract UniswapV3WrapperTest is PRBTest, StdCheats {
+    UniswapV3Wrapper internal wrapper;
     FlashBorrower internal borrower;
     IERC20 internal dai;
     IERC20 internal weth;
@@ -32,7 +32,7 @@ contract ERC7399UniswapV3Test is PRBTest, StdCheats {
         dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
         weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
-        wrapper = new ERC7399UniswapV3(factory, weth, dai);
+        wrapper = new UniswapV3Wrapper(factory, weth, dai);
         borrower = new FlashBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }

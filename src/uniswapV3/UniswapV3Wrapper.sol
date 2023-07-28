@@ -12,7 +12,7 @@ import { FunctionCodec } from "../utils/FunctionCodec.sol";
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 
-contract ERC7399UniswapV3 is IERC3156PPFlashLender, IUniswapV3FlashCallback {
+contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
     using TransferHelper for IERC20;
     using FunctionCodec for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
     using FunctionCodec for bytes24;
