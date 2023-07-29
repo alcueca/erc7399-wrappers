@@ -26,9 +26,9 @@ contract AaveWrapperTest is PRBTest, StdCheats {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 16_428_000 });
-        provider = IPoolAddressesProvider(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e);
-        dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 98_674_994 });
+        provider = IPoolAddressesProvider(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
+        dai = IERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
 
         wrapper = new AaveWrapper(provider);
         borrower = new FlashBorrower(wrapper);
@@ -38,26 +38,26 @@ contract AaveWrapperTest is PRBTest, StdCheats {
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
     function test_flashFee() external {
         console2.log("test_flashFee");
-        assertEq(wrapper.flashFee(dai, 1e18), 0, "Fee not zero");
+        assertEq(wrapper.flashFee(dai, 1e18), 5e14, "Fee not right");
         assertEq(wrapper.flashFee(dai, type(uint256).max), type(uint256).max, "Fee not max");
     }
 
-//    function test_flashLoan() external {
-//        console2.log("test_flashLoan");
-//        uint256 loan = 1e18;
-//        uint256 fee = wrapper.flashFee(dai, loan);
-//        dai.transfer(address(borrower), fee);
-//        bytes memory result = borrower.flashBorrow(dai, loan);
-//        
-//        // Test the return values
-//        (bytes32 callbackReturn) = abi.decode(result, (bytes32));
-//        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
-//
-//        // Test the borrower state
-//        assertEq(borrower.flashInitiator(), address(borrower));
-//        assertEq(address(borrower.flashAsset()), address(dai));
-//        assertEq(borrower.flashAmount(), loan);
-//        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we borrowed
-//        assertEq(borrower.flashFee(), fee);
-//    }
+    function test_flashLoan() external {
+        console2.log("test_flashLoan");
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(dai, loan);
+        dai.transfer(address(borrower), fee);
+        bytes memory result = borrower.flashBorrow(dai, loan);
+        
+        // Test the return values
+        (bytes32 callbackReturn) = abi.decode(result, (bytes32));
+        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
+
+        // Test the borrower state
+        assertEq(borrower.flashInitiator(), address(borrower));
+        assertEq(address(borrower.flashAsset()), address(dai));
+        assertEq(borrower.flashAmount(), loan);
+        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we borrowed
+        assertEq(borrower.flashFee(), fee);
+    }
 }

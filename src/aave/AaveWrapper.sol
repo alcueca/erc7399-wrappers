@@ -45,12 +45,6 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         DataTypes.ReserveData memory reserve = POOL.getReserveData(address(asset));
         DataTypes.ReserveConfigurationMap memory configuration = reserve.configuration;
 
-        console2.log("flashFee");
-        console2.log("getPaused", configuration.getPaused());
-        console2.log("getActive", configuration.getActive());
-        console2.log("getFlashLoanEnabled", configuration.getFlashLoanEnabled());
-        console2.log("reserve", asset.balanceOf(reserve.aTokenAddress));
-
         if (!configuration.getPaused() && 
             configuration.getActive() &&
             configuration.getFlashLoanEnabled() &&
@@ -107,6 +101,7 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         address aaveInitiator,
         bytes calldata data
     ) external override returns (bool) {
+        console2.log("executeOperation");
         require(msg.sender == address(POOL), "not pool");
         require(aaveInitiator == address(this), "AaveFlashLoanProvider: not initiator");
 
@@ -118,7 +113,9 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
             bytes24 encodedCallback;
 
             // decode data
+            console2.log("abi decoding...");
             (initiator, loanReceiver, encodedCallback, initiatorData) = abi.decode(data, (address, address, bytes24, bytes));
+            console2.log("callback decoding...");
             callback = encodedCallback.decodeFunction();
 
             IERC20(asset).approve(address(POOL), amount + fee);
