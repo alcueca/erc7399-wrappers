@@ -59,5 +59,8 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashAmount(), loan);
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we borrowed
         assertEq(borrower.flashFee(), fee);
+
+        // Test the wrapper state (return bytes should be cleaned up)
+        assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
     }
 }

@@ -78,7 +78,7 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         /// @param data The ABI encoded data to be passed to the callback
         /// @return result ABI encoded result of the callback
         function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback
-    ) external returns (bytes memory) {
+    ) external returns (bytes memory result) {
         bytes memory data = abi.encode(msg.sender, loanReceiver, callback.encodeFunction(), initiatorData);
 
         POOL.flashLoanSimple({
@@ -89,8 +89,8 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
             referralCode: 0
         });
 
-        bytes memory result = _callbackResult;
-        delete _callbackResult; // TODO: Confirm that this deletes the storage variable
+        result = _callbackResult;
+        delete _callbackResult;
         return result;
     }
 
