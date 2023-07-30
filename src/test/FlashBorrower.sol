@@ -74,6 +74,21 @@ contract FlashBorrower {
         return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
 
+    function onFlashLoanVoid(address initiator, address paymentReceiver, IERC20 asset, uint256 amount, uint256 fee, bytes calldata) external returns(bytes memory) {
+        require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
+        require(initiator == address(this), "FlashBorrower: External loan initiator");
+
+        flashInitiator = initiator;
+        flashAsset = asset;
+        flashAmount = amount;
+        flashFee = fee;
+        loanReceiver.retrieve(asset);
+        flashBalance = IERC20(asset).balanceOf(address(this));
+        asset.transfer(paymentReceiver, amount + fee);
+
+        return "";
+    }
+
     function flashBorrow(IERC20 asset, uint256 amount) public returns(bytes memory) {
         return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onFlashLoan);
     }
@@ -84,5 +99,9 @@ contract FlashBorrower {
 
     function flashBorrowAndReenter(IERC20 asset, uint256 amount) public returns(bytes memory) {
         return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onReenter);
+    }
+
+    function flashBorrowVoid(IERC20 asset, uint256 amount) public returns(bytes memory) {
+        return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onFlashLoanVoid);
     }
 }

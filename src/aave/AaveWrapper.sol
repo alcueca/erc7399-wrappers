@@ -90,7 +90,10 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         });
 
         result = _callbackResult;
-        delete _callbackResult;
+        // Avoid storage write if not needed
+        if (result.length > 0) {
+            delete _callbackResult;
+        }
         return result;
     }
 
