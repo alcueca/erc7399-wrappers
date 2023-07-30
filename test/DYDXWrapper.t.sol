@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { FlashBorrower } from "../src/test/FlashBorrower.sol";
+import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, DYDXWrapper } from "../src/dydx/DYDXWrapper.sol";
 import { SoloMarginLike } from "../src/dydx/interfaces/SoloMarginLike.sol";
 

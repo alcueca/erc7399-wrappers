@@ -6,7 +6,7 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { FlashLender } from "../src/FlashLender.sol";
-import { FlashBorrower } from "../src/test/FlashBorrower.sol";
+import { FlashBorrower } from "./FlashBorrower.sol";
 import { ERC20Mock } from "../src/test/ERC20Mock.sol";
 import { IERC20 } from "../src/interfaces/IERC20.sol";
 

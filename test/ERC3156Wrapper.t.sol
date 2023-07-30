@@ -6,7 +6,7 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 
-import { FlashBorrower } from "../src/test/FlashBorrower.sol";
+import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:

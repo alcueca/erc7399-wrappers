@@ -6,7 +6,7 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { FunctionCodec } from "../src/utils/FunctionCodec.sol";
-import { FlashBorrower } from "../src/test/FlashBorrower.sol";
+import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, AaveWrapper } from "../src/aave/AaveWrapper.sol";
 import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
 

@@ -6,7 +6,7 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
-import { FlashBorrower } from "../src/test/FlashBorrower.sol";
+import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, BalancerWrapper } from "../src/balancer/BalancerWrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
