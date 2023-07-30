@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 import { IERC3156FlashBorrower } from "lib/erc3156/contracts/interfaces/IERC3156FlashBorrower.sol";
 import { TransferHelper } from "../utils/TransferHelper.sol";
-import { FunctionCodec } from "../utils/FunctionCodec.sol";
 
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";

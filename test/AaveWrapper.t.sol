@@ -5,7 +5,6 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { FunctionCodec } from "../src/utils/FunctionCodec.sol";
 import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, AaveWrapper } from "../src/aave/AaveWrapper.sol";
 import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
@@ -13,7 +12,6 @@ import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesPro
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
-    using FunctionCodec for *;
 
     AaveWrapper internal wrapper;
     FlashBorrower internal borrower;
