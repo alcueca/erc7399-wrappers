@@ -85,7 +85,7 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
             receiverAddress: address(this),
             asset: address(asset),
             amount: amount,
-            params: abi.encode(data),
+            params: data,
             referralCode: 0
         });
 
