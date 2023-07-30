@@ -16,13 +16,16 @@ import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 
 contract BalancerWrapper is IFlashLoanRecipient, IERC3156PPFlashLender {
     using TransferHelper for IERC20;
-    using
-    FunctionCodec
-    for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
-    using FunctionCodec for bytes24;
     using Arrays for uint256;
     using Arrays for address;
     using FixedPointMathLib for uint256;
+
+    struct Data {
+        address loanReceiver;
+        address initiator;
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback;
+        bytes initiatorData;
+    }
 
     bytes32 private flashLoanDataHash;
     bytes internal _callbackResult;
@@ -69,8 +72,9 @@ contract BalancerWrapper is IFlashLoanRecipient, IERC3156PPFlashLender {
         external
         returns (bytes memory)
     {
-        bytes memory data =
-            abi.encode(msg.sender, loanReceiver, asset, amount, callback.encodeFunction(), initiatorData);
+        bytes memory data = abi.encode(
+            Data({ loanReceiver: loanReceiver, initiator: msg.sender, callback: callback, initiatorData: initiatorData })
+        );
 
         flashLoanDataHash = keccak256(data);
         balancer.flashLoan(this, address(asset).toArray(), amount.toArray(), data);
@@ -84,34 +88,23 @@ contract BalancerWrapper is IFlashLoanRecipient, IERC3156PPFlashLender {
         address[] memory assets,
         uint256[] memory amounts,
         uint256[] memory fees,
-        bytes memory data
+        bytes memory params
     )
         external
         override
     {
         require(msg.sender == address(balancer), "not balancer");
-        require(keccak256(data) == flashLoanDataHash, "params hash mismatch");
+        require(keccak256(params) == flashLoanDataHash, "params hash mismatch");
         delete flashLoanDataHash;
 
-        // decode data
-        (
-            address initiator,
-            address loanReceiver,
-            IERC20 asset,
-            uint256 amount,
-            bytes24 encodedCallback,
-            bytes memory initiatorData
-        ) = abi.decode(data, (address, address, IERC20, uint256, bytes24, bytes));
-
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback =
-            encodedCallback.decodeFunction();
-
-        // send the borrowed amount to the loan receiver
-        asset.safeTransfer(address(loanReceiver), amount);
+        Data memory data = abi.decode(params, (Data));
+        IERC20 asset = IERC20(assets[0]);
+        uint256 amount = amounts[0];
+        asset.safeTransfer(data.loanReceiver, amount);
 
         // call the callback and tell the calback receiver to pay to the balancer contract
         // the callback result is kept in a storage variable to be retrieved later in this tx
-        _callbackResult = callback(initiator, msg.sender, IERC20(assets[0]), amounts[0], fees[0], initiatorData); // TODO:
+        _callbackResult = data.callback(data.initiator, msg.sender, asset, amount, fees[0], data.initiatorData); // TODO:
             // Skip the storage write if result.length == 0
     }
 }
