@@ -6,27 +6,16 @@ import { IUniswapV3FlashCallback } from "./interfaces/callback/IUniswapV3FlashCa
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 
-import { TransferHelper } from "../utils/TransferHelper.sol";
-
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
-import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 
-contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
-    using TransferHelper for IERC20;
+import { BaseWrapper } from "../BaseWrapper.sol";
 
-    struct Data {
-        address loanReceiver;
-        address initiator;
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback;
-        bytes initiatorData;
-    }
-
+contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     // CONSTANTS
     IUniswapV3Factory public immutable factory;
 
     // ACCESS CONTROL
     IUniswapV3Pool internal _activePool;
-    bytes internal _callbackResult;
 
     // DEFAULT ASSETS
     IERC20 weth;
@@ -64,37 +53,7 @@ contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
         return amount * uint256(pool.fee()) / 1e6;
     }
 
-    /// @dev Use the aggregator to serve an ERC3156++ flash loan.
-    /// @dev Forward the callback to the callback receiver. The borrower only needs to trust the aggregator and its
-    /// governance, instead of the underlying lenders.
-    /// @param loanReceiver The address receiving the flash loan
-    /// @param asset The asset to be loaned
-    /// @param amount The amount to loaned
-    /// @param initiatorData The ABI encoded initiator data
-    /// @param callback The address and signature of the callback function
-    /// @return result ABI encoded result of the callback
-    function flashLoan(
-        address loanReceiver,
-        IERC20 asset,
-        uint256 amount,
-        bytes calldata initiatorData,
-        /// @dev callback.
-        /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is
-        /// the signature of callback function.
-        /// The arguments in the callback function are fixed.
-        /// If the callback receiver needs to know the loan receiver, it should be encoded by the initiator in `data`.
-        /// @param initiator The address that called this function
-        /// @param paymentReceiver The address that needs to receive the amount plus fee at the end of the callback
-        /// @param asset The asset to be loaned
-        /// @param amount The amount to loaned
-        /// @param fee The fee to be paid
-        /// @param data The ABI encoded data to be passed to the callback
-        /// @return result ABI encoded result of the callback
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback
-    )
-        external
-        returns (bytes memory)
-    {
+    function _flashLoan(IERC20 asset, uint256 amount, bytes memory data) internal override {
         IUniswapV3Pool pool = getPool(asset);
         require(address(pool) != address(0), "Unsupported currency");
 
@@ -103,17 +62,9 @@ contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
         uint256 amount0 = asset == asset0 ? amount : 0;
         uint256 amount1 = asset == asset1 ? amount : 0;
 
-        bytes memory data = abi.encode(
-            Data({ loanReceiver: loanReceiver, initiator: msg.sender, callback: callback, initiatorData: initiatorData })
-        );
-
         _activePool = pool;
         pool.flash(address(this), amount0, amount1, data);
         delete _activePool;
-
-        bytes memory result = _callbackResult;
-        delete _callbackResult; // TODO: Confirm that this deletes the storage variable
-        return result;
     }
 
     // Flashswap Callback
@@ -127,16 +78,14 @@ contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
     {
         require(msg.sender == address(_activePool), "Only active pool");
 
-        Data memory data = abi.decode(params, (Data));
         uint256 fee = fee0 > 0 ? fee0 : fee1;
         IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
         uint256 amount = asset.balanceOf(address(this));
 
-        // send the borrowed amount to the loan receiver
-        asset.safeTransfer(data.loanReceiver, amount);
+        _handleFlashLoan(asset, amount, fee, params);
+    }
 
-        // call the callback and tell the calback receiver to pay to the pool contract
-        // the callback result is kept in a storage variable to be retrieved later in this tx
-        _callbackResult = data.callback(data.initiator, msg.sender, asset, amount, fee, data.initiatorData);
+    function _repayTo() internal view override returns (address) {
+        return msg.sender;
     }
 }

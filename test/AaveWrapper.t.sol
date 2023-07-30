@@ -9,10 +9,11 @@ import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, AaveWrapper } from "../src/aave/AaveWrapper.sol";
 import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
 
+import { BaseWrapper } from "src/BaseWrapper.sol";
+
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
-
     AaveWrapper internal wrapper;
     FlashBorrower internal borrower;
     IERC20 internal dai;
@@ -62,7 +63,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashFee(), fee);
 
         // Test the wrapper state (return bytes should be cleaned up)
-        assertEq(vm.load(address(wrapper), bytes32(uint256(1))), "");
+        assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
     }
 
     function test_flashLoan_void() external {
@@ -82,7 +83,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
     }
 
     function test_executeOperation() public {
-        AaveWrapper.Data memory data = AaveWrapper.Data({
+        BaseWrapper.Data memory data = BaseWrapper.Data({
             loanReceiver: address(this),
             initiator: address(this),
             callback: this._voidCallback,
@@ -96,7 +97,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
             asset: address(dai),
             amount: 1e18,
             fee: 0,
-            aaveInitiator: address(wrapper),
+            initiator: address(wrapper),
             params: abi.encode(data)
         });
 
