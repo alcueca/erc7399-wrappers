@@ -64,11 +64,11 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashFee(), fee);
 
         // Test the wrapper state (return bytes should be cleaned up)
-        assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
+        assertEq(vm.load(address(wrapper), bytes32(uint256(1))), "");
     }
 
     function test_flashLoan_void() external {
-        console2.log("test_flashLoan");
+        console2.log("test_flashLoan_void");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
         dai.transfer(address(borrower), fee);
@@ -84,7 +84,12 @@ contract AaveWrapperTest is PRBTest, StdCheats {
     }
 
     function test_executeOperation() public {
-        bytes memory data = abi.encode(address(0), address(this), this._voidCallback.encodeFunction(), "");
+        AaveWrapper.Data memory data = AaveWrapper.Data({
+            loanReceiver: address(this),
+            initiator: address(this),
+            callback: this._voidCallback,
+            initiatorData: ""
+        });
 
         deal(address(dai), address(wrapper), 1e18);
         vm.prank(provider.getPool());
@@ -94,7 +99,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
             amount: 1e18,
             fee: 0,
             aaveInitiator: address(wrapper),
-            data: data
+            params: abi.encode(data)
         });
 
         (, bytes32[] memory writeSlots) = vm.accesses(address(wrapper));

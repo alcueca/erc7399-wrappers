@@ -8,27 +8,28 @@ import { ReserveConfiguration } from "./interfaces/ReserveConfiguration.sol";
 import { IPoolAddressesProvider } from "./interfaces/IPoolAddressesProvider.sol";
 import { IFlashLoanSimpleReceiver } from "./interfaces/IFlashLoanSimpleReceiver.sol";
 
-import { FunctionCodec } from "../utils/FunctionCodec.sol";
 import { TransferHelper } from "../utils/TransferHelper.sol";
 
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 
-import { console2 } from "forge-std/console2.sol";
-
 contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
     using TransferHelper for IERC20;
-    using
-    FunctionCodec
-    for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
-    using FunctionCodec for bytes24;
     using FixedPointMathLib for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
-    bytes internal _callbackResult;
+    struct Data {
+        address loanReceiver;
+        address initiator;
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback;
+        bytes initiatorData;
+    }
+
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
     IPool public POOL;
+
+    bytes internal _callbackResult;
 
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
@@ -81,13 +82,18 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         external
         returns (bytes memory result)
     {
-        bytes memory data = abi.encode(msg.sender, loanReceiver, callback.encodeFunction(), initiatorData);
+        Data memory data = Data({
+            loanReceiver: loanReceiver,
+            initiator: msg.sender,
+            callback: callback,
+            initiatorData: initiatorData
+        });
 
         POOL.flashLoanSimple({
             receiverAddress: address(this),
             asset: address(asset),
             amount: amount,
-            params: data,
+            params: abi.encode(data),
             referralCode: 0
         });
 
@@ -104,36 +110,21 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         uint256 amount,
         uint256 fee,
         address aaveInitiator,
-        bytes calldata data
+        bytes calldata params
     )
         external
         override
         returns (bool)
     {
-        console2.log("executeOperation");
         require(msg.sender == address(POOL), "not pool");
         require(aaveInitiator == address(this), "AaveFlashLoanProvider: not initiator");
 
-        address initiator;
-        bytes memory initiatorData;
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback;
-        {
-            address loanReceiver;
-            bytes24 encodedCallback;
+        Data memory data = abi.decode(params, (Data));
+        IERC20(asset).approve(address(POOL), amount + fee);
+        IERC20(asset).safeTransfer(data.loanReceiver, amount);
 
-            // decode data
-            console2.log("abi decoding...");
-            (initiator, loanReceiver, encodedCallback, initiatorData) =
-                abi.decode(data, (address, address, bytes24, bytes));
-            console2.log("callback decoding...");
-            callback = encodedCallback.decodeFunction();
-
-            IERC20(asset).approve(address(POOL), amount + fee);
-            IERC20(asset).safeTransfer(loanReceiver, amount);
-        } // release loanReceiver and encodedCallback from the stack
-
-        // call the callback and tell the calback receiver to repay the loan to this contract
-        bytes memory result = callback(initiator, address(this), IERC20(asset), amount, fee, initiatorData);
+        // call the callback and tell the callback receiver to repay the loan to this contract
+        bytes memory result = data.callback(data.initiator, address(this), IERC20(asset), amount, fee, data.initiatorData);
 
         if (result.length > 0) {
             // if there's any result, it is kept in a storage variable to be retrieved later in this tx
