@@ -124,8 +124,12 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
 
 
         // call the callback and tell the calback receiver to repay the loan to this contract
-        // the callback result is kept in a storage variable to be retrieved later in this tx
-        _callbackResult = callback(initiator, address(this), IERC20(asset), amount, fee, initiatorData); // TODO: Skip the storage write if result.length == 0
+        bytes memory result = callback(initiator, address(this), IERC20(asset), amount, fee, initiatorData);
+
+        if(result.length > 0) {
+            // if there's any result, it is kept in a storage variable to be retrieved later in this tx
+            _callbackResult = result;
+        }
 
         return true;
     }

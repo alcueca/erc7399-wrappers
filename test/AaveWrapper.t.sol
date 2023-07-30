@@ -5,14 +5,16 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
+import { FunctionCodec } from "../src/utils/FunctionCodec.sol";
 import { FlashBorrower } from "../src/test/FlashBorrower.sol";
 import { IERC20, AaveWrapper } from "../src/aave/AaveWrapper.sol";
 import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
 
-
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
+    using FunctionCodec for *;
+
     AaveWrapper internal wrapper;
     FlashBorrower internal borrower;
     IERC20 internal dai;
@@ -48,7 +50,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         uint256 fee = wrapper.flashFee(dai, loan);
         dai.transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
-        
+
         // Test the return values
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
@@ -57,10 +59,33 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashInitiator(), address(borrower));
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);
-        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we borrowed
+        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
+            // borrowed
         assertEq(borrower.flashFee(), fee);
 
         // Test the wrapper state (return bytes should be cleaned up)
         assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
+    }
+
+    function test_executeOperation() public {
+        bytes memory data = abi.encode(address(0), address(this), this._voidCallback.encodeFunction(), "");
+
+        deal(address(dai), address(wrapper), 1e18);
+        vm.prank(provider.getPool());
+        vm.record();
+        wrapper.executeOperation({
+            asset: address(dai),
+            amount: 1e18,
+            fee: 0,
+            aaveInitiator: address(wrapper),
+            data: data
+        });
+
+        (, bytes32[] memory writeSlots) = vm.accesses(address(wrapper));
+        assertEq(writeSlots.length, 0, "writeSlots");
+    }
+
+    function _voidCallback(address, address, IERC20, uint256, uint256, bytes memory) external pure returns (bytes memory) {
+        return "";
     }
 }
