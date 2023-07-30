@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
+
 import { IFlashLoanRecipient } from "./IFlashLoanRecipient.sol";
 import { IProtocolFeesCollector } from "./IProtocolFeesCollector.sol";
 
@@ -9,7 +10,8 @@ interface IFlashLoaner {
         address[] memory tokens,
         uint256[] memory amounts,
         bytes memory userData
-    ) external;
+    )
+        external;
 
     function getProtocolFeesCollector() external view returns (IProtocolFeesCollector);
 }

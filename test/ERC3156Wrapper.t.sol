@@ -9,7 +9,6 @@ import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156Fl
 import { FlashBorrower } from "../src/test/FlashBorrower.sol";
 import { IERC20, ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
 
-
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract ERC3156WrapperTest is PRBTest, StdCheats {
@@ -52,7 +51,7 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         uint256 fee = wrapper.flashFee(dai, loan);
         dai.transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
-        
+
         // Test the return values
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
@@ -61,7 +60,8 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashInitiator(), address(borrower));
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);
-        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we borrowed
+        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
+            // borrowed
         assertEq(borrower.flashFee(), fee);
     }
 }

@@ -19,7 +19,9 @@ import { console2 } from "forge-std/console2.sol";
 
 contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
     using TransferHelper for IERC20;
-    using FunctionCodec for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
+    using
+    FunctionCodec
+    for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
     using FunctionCodec for bytes24;
     using FixedPointMathLib for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -37,24 +39,20 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
     }
 
-    function flashFee(IERC20 asset, uint256 amount)
-        external
-        view
-        returns (uint256 fee)
-    {
+    function flashFee(IERC20 asset, uint256 amount) external view returns (uint256 fee) {
         DataTypes.ReserveData memory reserve = POOL.getReserveData(address(asset));
         DataTypes.ReserveConfigurationMap memory configuration = reserve.configuration;
 
-        if (!configuration.getPaused() && 
-            configuration.getActive() &&
-            configuration.getFlashLoanEnabled() &&
-            amount < asset.balanceOf(reserve.aTokenAddress)
+        if (
+            !configuration.getPaused() && configuration.getActive() && configuration.getFlashLoanEnabled()
+                && amount < asset.balanceOf(reserve.aTokenAddress)
         ) fee = amount.mulWadUp(POOL.FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18);
         else fee = type(uint256).max;
     }
 
     /// @dev Use the aggregator to serve an ERC3156++ flash loan.
-    /// @dev Forward the callback to the callback receiver. The borrower only needs to trust the aggregator and its governance, instead of the underlying lenders.
+    /// @dev Forward the callback to the callback receiver. The borrower only needs to trust the aggregator and its
+    /// governance, instead of the underlying lenders.
     /// @param loanReceiver The address receiving the flash loan
     /// @param asset The asset to be loaned
     /// @param amount The amount to loaned
@@ -67,7 +65,8 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         uint256 amount,
         bytes calldata initiatorData,
         /// @dev callback.
-        /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is the signature of callback function.
+        /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is
+        /// the signature of callback function.
         /// The arguments in the callback function are fixed.
         /// If the callback receiver needs to know the loan receiver, it should be encoded by the initiator in `data`.
         /// @param initiator The address that called this function
@@ -78,7 +77,10 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         /// @param data The ABI encoded data to be passed to the callback
         /// @return result ABI encoded result of the callback
         function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback
-    ) external returns (bytes memory result) {
+    )
+        external
+        returns (bytes memory result)
+    {
         bytes memory data = abi.encode(msg.sender, loanReceiver, callback.encodeFunction(), initiatorData);
 
         POOL.flashLoanSimple({
@@ -103,7 +105,11 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         uint256 fee,
         address aaveInitiator,
         bytes calldata data
-    ) external override returns (bool) {
+    )
+        external
+        override
+        returns (bool)
+    {
         console2.log("executeOperation");
         require(msg.sender == address(POOL), "not pool");
         require(aaveInitiator == address(this), "AaveFlashLoanProvider: not initiator");
@@ -117,7 +123,8 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
 
             // decode data
             console2.log("abi decoding...");
-            (initiator, loanReceiver, encodedCallback, initiatorData) = abi.decode(data, (address, address, bytes24, bytes));
+            (initiator, loanReceiver, encodedCallback, initiatorData) =
+                abi.decode(data, (address, address, bytes24, bytes));
             console2.log("callback decoding...");
             callback = encodedCallback.decodeFunction();
 
@@ -125,11 +132,10 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
             IERC20(asset).safeTransfer(loanReceiver, amount);
         } // release loanReceiver and encodedCallback from the stack
 
-
         // call the callback and tell the calback receiver to repay the loan to this contract
         bytes memory result = callback(initiator, address(this), IERC20(asset), amount, fee, initiatorData);
 
-        if(result.length > 0) {
+        if (result.length > 0) {
             // if there's any result, it is kept in a storage variable to be retrieved later in this tx
             _callbackResult = result;
         }

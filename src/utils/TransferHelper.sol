@@ -14,12 +14,9 @@ library TransferHelper {
     /// @param asset The contract address of the asset which will be transferred
     /// @param to The recipient of the transfer
     /// @param value The value of the transfer
-    function safeTransfer(
-        IERC20 asset,
-        address to,
-        uint256 value
-    ) internal {
-        (bool success, bytes memory data) = address(asset).call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
+    function safeTransfer(IERC20 asset, address to, uint256 value) internal {
+        (bool success, bytes memory data) =
+            address(asset).call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         if (!(success && (data.length == 0 || abi.decode(data, (bool))))) revert(RevertMsgExtractor.getRevertMsg(data));
     }
 }

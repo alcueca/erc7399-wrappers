@@ -8,9 +8,20 @@ import { StdCheats } from "forge-std/StdCheats.sol";
 import "src/utils/FunctionCodec.sol";
 
 contract FunctionCodecTest is PRBTest, StdCheats {
-    function mockCallback(address, address, IERC20, uint256, uint256, bytes memory) external pure returns(bytes memory) {
+    function mockCallback(
+        address,
+        address,
+        IERC20,
+        uint256,
+        uint256,
+        bytes memory
+    )
+        external
+        pure
+        returns (bytes memory)
+    {
         return "Hello, world!";
-     }
+    }
 
     function test_encodeParams() public {
         assertEq(
@@ -32,7 +43,8 @@ contract FunctionCodecTest is PRBTest, StdCheats {
     }
 
     function test_decodeFunction() public {
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f = FunctionCodec.decodeFunction(address(this), this.mockCallback.selector);
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f =
+            FunctionCodec.decodeFunction(address(this), this.mockCallback.selector);
 
         address a = address(1);
         IERC20 i = IERC20(a);
@@ -43,7 +55,8 @@ contract FunctionCodecTest is PRBTest, StdCheats {
 
     function test_decodeFunction2() public {
         bytes24 encoded = FunctionCodec.encodeFunction(this.mockCallback);
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f = FunctionCodec.decodeFunction(encoded);
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f =
+            FunctionCodec.decodeFunction(encoded);
 
         address a = address(1);
         IERC20 i = IERC20(a);

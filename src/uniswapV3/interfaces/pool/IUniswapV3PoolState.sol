@@ -31,11 +31,13 @@ interface IUniswapV3PoolState {
             bool unlocked
         );
 
-    /// @notice The fee growth as a Q128.128 fees of token0 collected per unit of liquidity for the entire life of the pool
+    /// @notice The fee growth as a Q128.128 fees of token0 collected per unit of liquidity for the entire life of the
+    /// pool
     /// @dev This value can overflow the uint256
     function feeGrowthGlobal0X128() external view returns (uint256);
 
-    /// @notice The fee growth as a Q128.128 fees of token1 collected per unit of liquidity for the entire life of the pool
+    /// @notice The fee growth as a Q128.128 fees of token1 collected per unit of liquidity for the entire life of the
+    /// pool
     /// @dev This value can overflow the uint256
     function feeGrowthGlobal1X128() external view returns (uint256);
 
@@ -55,9 +57,11 @@ interface IUniswapV3PoolState {
     /// feeGrowthOutside0X128 the fee growth on the other side of the tick from the current tick in token0,
     /// feeGrowthOutside1X128 the fee growth on the other side of the tick from the current tick in token1,
     /// tickCumulativeOutside the cumulative tick value on the other side of the tick from the current tick
-    /// secondsPerLiquidityOutsideX128 the seconds spent per liquidity on the other side of the tick from the current tick,
+    /// secondsPerLiquidityOutsideX128 the seconds spent per liquidity on the other side of the tick from the current
+    /// tick,
     /// secondsOutside the seconds spent on the other side of the tick from the current tick,
-    /// initialized Set to true if the tick is initialized, i.e. liquidityGross is greater than 0, otherwise equal to false.
+    /// initialized Set to true if the tick is initialized, i.e. liquidityGross is greater than 0, otherwise equal to
+    /// false.
     /// Outside values can only be used if the tick is initialized, i.e. if liquidityGross is greater than 0.
     /// In addition, these values are only relative and must be used only in comparison to previous snapshots for
     /// a specific position.
@@ -98,11 +102,14 @@ interface IUniswapV3PoolState {
 
     /// @notice Returns data about a specific observation index
     /// @param index The element of the observations array to fetch
-    /// @dev You most likely want to use #observe() instead of this method to get an observation as of some amount of time
+    /// @dev You most likely want to use #observe() instead of this method to get an observation as of some amount of
+    /// time
     /// ago, rather than at a specific index in the array.
     /// @return blockTimestamp The timestamp of the observation,
-    /// Returns tickCumulative the tick multiplied by seconds elapsed for the life of the pool as of the observation timestamp,
-    /// Returns secondsPerLiquidityCumulativeX128 the seconds per in range liquidity for the life of the pool as of the observation timestamp,
+    /// Returns tickCumulative the tick multiplied by seconds elapsed for the life of the pool as of the observation
+    /// timestamp,
+    /// Returns secondsPerLiquidityCumulativeX128 the seconds per in range liquidity for the life of the pool as of the
+    /// observation timestamp,
     /// Returns initialized whether the observation has been initialized and the values are safe to use
     function observations(uint256 index)
         external

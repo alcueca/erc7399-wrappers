@@ -9,7 +9,6 @@ import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
 import { FlashBorrower } from "../src/test/FlashBorrower.sol";
 import { IERC20, BalancerWrapper } from "../src/balancer/BalancerWrapper.sol";
 
-
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract BalancerWrapperTest is PRBTest, StdCheats {
@@ -48,7 +47,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         uint256 fee = wrapper.flashFee(dai, loan);
         dai.transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
-        
+
         // Test the return values
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
@@ -57,7 +56,8 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashInitiator(), address(borrower));
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);
-        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we borrowed
+        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
+            // borrowed
         assertEq(borrower.flashFee(), fee);
     }
 }

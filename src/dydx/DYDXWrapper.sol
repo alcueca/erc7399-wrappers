@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Derived from https://github.com/kollateral/kollateral/blob/master/protocol/contracts/liquidity/kollateral/KollateralLiquidityProxy.sol
+// Derived from
+// https://github.com/kollateral/kollateral/blob/master/protocol/contracts/liquidity/kollateral/KollateralLiquidityProxy.sol
 pragma solidity ^0.8.0;
 
 import { SoloMarginLike } from "./interfaces/SoloMarginLike.sol";
@@ -11,10 +12,11 @@ import { FunctionCodec } from "../utils/FunctionCodec.sol";
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 
-
 contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
     using TransferHelper for IERC20;
-    using FunctionCodec for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
+    using
+    FunctionCodec
+    for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
     using FunctionCodec for bytes24;
 
     uint256 internal NULL_ACCOUNT_ID = 0;
@@ -33,7 +35,7 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
     mapping(IERC20 => bool) public assetsRegistered;
 
     /// @param soloMargin_ DYDX SoloMargin address
-    constructor (SoloMarginLike soloMargin_) {
+    constructor(SoloMarginLike soloMargin_) {
         soloMargin = soloMargin_;
 
         for (uint256 marketId = 0; marketId <= 3; marketId++) {
@@ -55,7 +57,8 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
     }
 
     /// @dev Use the aggregator to serve an ERC3156++ flash loan.
-    /// @dev Forward the callback to the callback receiver. The borrower only needs to trust the aggregator and its governance, instead of the underlying lenders.
+    /// @dev Forward the callback to the callback receiver. The borrower only needs to trust the aggregator and its
+    /// governance, instead of the underlying lenders.
     /// @param loanReceiver The address receiving the flash loan
     /// @param asset The asset to be loaned
     /// @param amount The amount to loaned
@@ -68,7 +71,8 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         uint256 amount,
         bytes calldata initiatorData,
         /// @dev callback.
-        /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is the signature of callback function.
+        /// This is a concatenation of (address, bytes4), where the address is the callback receiver, and the bytes4 is
+        /// the signature of callback function.
         /// The arguments in the callback function are fixed.
         /// If the callback receiver needs to know the loan receiver, it should be encoded by the initiator in `data`.
         /// @param initiator The address that called this function
@@ -79,7 +83,10 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         /// @param data The ABI encoded data to be passed to the callback
         /// @return result ABI encoded result of the callback
         function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback
-    ) external returns (bytes memory) {
+    )
+        external
+        returns (bytes memory)
+    {
         DYDXDataTypes.ActionArgs[] memory operations = new DYDXDataTypes.ActionArgs[](3);
         operations[0] = getWithdrawAction(loanReceiver, asset, amount);
         operations[1] = getCallAction(abi.encode(msg.sender, asset, amount, callback.encodeFunction(), initiatorData));
@@ -94,48 +101,45 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         return result;
     }
 
-    /// @dev DYDX flash loan callback. It sends the value borrowed to `receiver`, and takes it back plus a `flashFee` after the ERC3156 callback.
-    function callFunction(
-        address sender,
-        DYDXDataTypes.AccountInfo memory,
-        bytes memory data
-    )
-    public override
-    {
+    /// @dev DYDX flash loan callback. It sends the value borrowed to `receiver`, and takes it back plus a `flashFee`
+    /// after the ERC3156 callback.
+    function callFunction(address sender, DYDXDataTypes.AccountInfo memory, bytes memory data) public override {
         require(msg.sender == address(soloMargin), "Callback only from SoloMargin");
         require(sender == address(this), "FlashLoan only from this contract");
 
-        // We pass the loan to the loan receiver and we store the callback result in storage for the the ERC3156++ flashLoan function to recover it.
+        // We pass the loan to the loan receiver and we store the callback result in storage for the the ERC3156++
+        // flashLoan function to recover it.
         _callbackResult = _callFromData(data);
     }
 
-
     /// @dev Internal function to transfer to the loan receiver and the callback. It is used to avoid stack too deep.
-    function _callFromData(bytes memory data) internal returns(bytes memory) {
-        (address initiator, IERC20 asset, uint256 amount, bytes24 encodedCallback, bytes memory initiatorData) = 
+    function _callFromData(bytes memory data) internal returns (bytes memory) {
+        (address initiator, IERC20 asset, uint256 amount, bytes24 encodedCallback, bytes memory initiatorData) =
             abi.decode(data, (address, IERC20, uint256, bytes24, bytes));
 
         uint256 fee = flashFee(asset, amount);
 
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback = encodedCallback.decodeFunction();
-        
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback =
+            encodedCallback.decodeFunction();
+
         // Approve the SoloMargin contract allowance to *pull* the owed amount
-        IERC20(asset).approve(address(soloMargin), amount + fee);            
+        IERC20(asset).approve(address(soloMargin), amount + fee);
 
         return callback(initiator, address(this), asset, amount, fee, initiatorData);
     }
 
     function getAccountInfo() internal view returns (DYDXDataTypes.AccountInfo memory) {
-        return DYDXDataTypes.AccountInfo({
-            owner: address(this),
-            number: 1
-        });
+        return DYDXDataTypes.AccountInfo({ owner: address(this), number: 1 });
     }
 
-    function getWithdrawAction(address loanReceiver, IERC20 asset,uint256 amount)
-    internal
-    view
-    returns (DYDXDataTypes.ActionArgs memory)
+    function getWithdrawAction(
+        address loanReceiver,
+        IERC20 asset,
+        uint256 amount
+    )
+        internal
+        view
+        returns (DYDXDataTypes.ActionArgs memory)
     {
         return DYDXDataTypes.ActionArgs({
             actionType: DYDXDataTypes.ActionType.Withdraw,
@@ -154,10 +158,13 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         });
     }
 
-    function getDepositAction(IERC20 asset, uint256 repaymentAmount)
-    internal
-    view
-    returns (DYDXDataTypes.ActionArgs memory)
+    function getDepositAction(
+        IERC20 asset,
+        uint256 repaymentAmount
+    )
+        internal
+        view
+        returns (DYDXDataTypes.ActionArgs memory)
     {
         return DYDXDataTypes.ActionArgs({
             actionType: DYDXDataTypes.ActionType.Deposit,
@@ -176,11 +183,7 @@ contract DYDXWrapper is IERC3156PPFlashLender, DYDXFlashBorrowerLike {
         });
     }
 
-    function getCallAction(bytes memory data_)
-    internal
-    view
-    returns (DYDXDataTypes.ActionArgs memory)
-    {
+    function getCallAction(bytes memory data_) internal view returns (DYDXDataTypes.ActionArgs memory) {
         return DYDXDataTypes.ActionArgs({
             actionType: DYDXDataTypes.ActionType.Call,
             accountId: 0,

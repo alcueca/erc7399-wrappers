@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 
 library FunctionCodec {
@@ -12,7 +13,13 @@ library FunctionCodec {
         selector = bytes4(encoded << 160);
     }
 
-    function encodeFunction(function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f) internal pure returns (bytes24) {
+    function encodeFunction(
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f
+    )
+        internal
+        pure
+        returns (bytes24)
+    {
         return encodeParams(f.address, f.selector);
     }
 
@@ -31,7 +38,11 @@ library FunctionCodec {
         }
     }
 
-    function decodeFunction(bytes24 encoded) internal pure returns (function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f) {
+    function decodeFunction(bytes24 encoded)
+        internal
+        pure
+        returns (function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) f)
+    {
         (address contractAddr, bytes4 selector) = decodeParams(encoded);
         return decodeFunction(contractAddr, selector);
     }

@@ -10,7 +10,6 @@ import "../libraries/DYDXDataTypes.sol";
  * Interface that Callees for Solo must implement in order to ingest data.
  */
 interface DYDXFlashBorrowerLike {
-
     // ============ Public Functions ============
 
     /**
@@ -20,10 +19,5 @@ interface DYDXFlashBorrowerLike {
      * @param  accountInfo  The account from which the data is being sent
      * @param  data         Arbitrary data given by the sender
      */
-    function callFunction(
-        address sender,
-        DYDXDataTypes.AccountInfo memory accountInfo,
-        bytes memory data
-    )
-    external;
+    function callFunction(address sender, DYDXDataTypes.AccountInfo memory accountInfo, bytes memory data) external;
 }
