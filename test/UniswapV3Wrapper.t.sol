@@ -39,7 +39,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
     function test_flashFee() external {
         console2.log("test_flashFee");
-        assertEq(wrapper.flashFee(dai, 1e18), 3_018_081_325_219_389, "Fee not exact");
+        assertEq(wrapper.flashFee(dai, 1e18), 0.003e18, "Fee not exact");
         assertEq(wrapper.flashFee(dai, type(uint256).max), type(uint256).max, "Fee not max");
     }
 
@@ -55,11 +55,11 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
         // Test the borrower state
-        assertEq(borrower.flashInitiator(), address(borrower));
-        assertEq(address(borrower.flashAsset()), address(dai));
-        assertEq(borrower.flashAmount(), loan);
-        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
-            // borrowed
-        assertEq(borrower.flashFee(), fee);
+        assertEq(borrower.flashInitiator(), address(borrower), "flashInitiator");
+        assertEq(address(borrower.flashAsset()), address(dai), "flashAsset");
+        assertEq(borrower.flashAmount(), loan, "flashAmount");
+        // The amount we transferred to pay for fees, plus the amount we borrowed
+        assertEq(borrower.flashBalance(), loan + fee, "flashBalance");
+        assertEq(borrower.flashFee(), fee, "flashFee");
     }
 }

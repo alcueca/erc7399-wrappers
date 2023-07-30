@@ -2,12 +2,10 @@
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.0;
 
-import { IProtocolFeesCollector } from "./interfaces/IProtocolFeesCollector.sol";
 import { IFlashLoanRecipient } from "./interfaces/IFlashLoanRecipient.sol";
 import { IFlashLoaner } from "./interfaces/IFlashLoaner.sol";
 
 import { TransferHelper } from "../utils/TransferHelper.sol";
-import { FunctionCodec } from "../utils/FunctionCodec.sol";
 import { Arrays } from "../utils/Arrays.sol";
 
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
@@ -27,10 +25,10 @@ contract BalancerWrapper is IFlashLoanRecipient, IERC3156PPFlashLender {
         bytes initiatorData;
     }
 
+    IFlashLoaner public immutable balancer;
+
     bytes32 private flashLoanDataHash;
     bytes internal _callbackResult;
-
-    IFlashLoaner public immutable balancer;
 
     constructor(IFlashLoaner _balancer) {
         balancer = _balancer;

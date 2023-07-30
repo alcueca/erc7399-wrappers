@@ -7,20 +7,22 @@ import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { IUniswapV3Factory } from "./interfaces/IUniswapV3Factory.sol";
 
 import { TransferHelper } from "../utils/TransferHelper.sol";
-import { FunctionCodec } from "../utils/FunctionCodec.sol";
 
 import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
 
 contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
     using TransferHelper for IERC20;
-    using
-    FunctionCodec
-    for function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory);
-    using FunctionCodec for bytes24;
+
+    struct Data {
+        address loanReceiver;
+        address initiator;
+        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback;
+        bytes initiatorData;
+    }
 
     // CONSTANTS
-    IUniswapV3Factory public factory;
+    IUniswapV3Factory public immutable factory;
 
     // ACCESS CONTROL
     IUniswapV3Pool internal _activePool;
@@ -57,13 +59,9 @@ contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
      * @return The amount of `asset` to be charged for the loan, on top of the returned principal.
      */
     function flashFee(IERC20 asset, uint256 amount) public view override returns (uint256) {
-        address pool = address(getPool(asset));
-        require(pool != address(0), "Unsupported currency");
-        if (asset.balanceOf(pool) <= amount) return type(uint256).max; // Not enough liquidity
-        uint256 wLoan = (amount * 1e6) / (1e6 - 3000); // 3000 = lpFees
-        uint256 wOwed = (wLoan * 1e6) / (1e6 - 3000); // 3000 = loanFees
-        uint256 fee = wOwed - wLoan;
-        return fee;
+        IUniswapV3Pool pool = getPool(asset);
+        if (asset.balanceOf(address(pool)) < amount) return type(uint256).max;
+        return amount * uint256(pool.fee()) / 1e6;
     }
 
     /// @dev Use the aggregator to serve an ERC3156++ flash loan.
@@ -105,8 +103,9 @@ contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
         uint256 amount0 = asset == asset0 ? amount : 0;
         uint256 amount1 = asset == asset1 ? amount : 0;
 
-        bytes memory data =
-            abi.encode(msg.sender, loanReceiver, asset, amount, callback.encodeFunction(), initiatorData);
+        bytes memory data = abi.encode(
+            Data({ loanReceiver: loanReceiver, initiator: msg.sender, callback: callback, initiatorData: initiatorData })
+        );
 
         _activePool = pool;
         pool.flash(address(this), amount0, amount1, data);
@@ -119,35 +118,25 @@ contract UniswapV3Wrapper is IERC3156PPFlashLender, IUniswapV3FlashCallback {
 
     // Flashswap Callback
     function uniswapV3FlashCallback(
-        uint256, // Fee on Asset0
-        uint256, // Fee on Asset1
-        bytes calldata data
+        uint256 fee0, // Fee on Asset0
+        uint256 fee1, // Fee on Asset1
+        bytes calldata params
     )
         external
         override
     {
         require(msg.sender == address(_activePool), "Only active pool");
 
-        // decode data
-        (
-            address initiator,
-            address loanReceiver,
-            IERC20 asset,
-            uint256 amount,
-            bytes24 encodedCallback,
-            bytes memory initiatorData
-        ) = abi.decode(data, (address, address, IERC20, uint256, bytes24, bytes));
-
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback =
-            encodedCallback.decodeFunction();
-
-        uint256 fee = flashFee(asset, amount);
+        Data memory data = abi.decode(params, (Data));
+        uint256 fee = fee0 > 0 ? fee0 : fee1;
+        IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
+        uint256 amount = asset.balanceOf(address(this));
 
         // send the borrowed amount to the loan receiver
-        asset.safeTransfer(address(loanReceiver), amount);
+        asset.safeTransfer(data.loanReceiver, amount);
 
         // call the callback and tell the calback receiver to pay to the pool contract
         // the callback result is kept in a storage variable to be retrieved later in this tx
-        _callbackResult = callback(initiator, msg.sender, asset, amount, fee, initiatorData);
+        _callbackResult = data.callback(data.initiator, msg.sender, asset, amount, fee, data.initiatorData);
     }
 }

@@ -124,7 +124,8 @@ contract AaveWrapper is IERC3156PPFlashLender, IFlashLoanSimpleReceiver {
         IERC20(asset).safeTransfer(data.loanReceiver, amount);
 
         // call the callback and tell the callback receiver to repay the loan to this contract
-        bytes memory result = data.callback(data.initiator, address(this), IERC20(asset), amount, fee, data.initiatorData);
+        bytes memory result =
+            data.callback(data.initiator, address(this), IERC20(asset), amount, fee, data.initiatorData);
 
         if (result.length > 0) {
             // if there's any result, it is kept in a storage variable to be retrieved later in this tx
