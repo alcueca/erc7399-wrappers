@@ -70,4 +70,9 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashBalance(), loan + fee, "flashBalance");
         assertEq(borrower.flashFee(), fee, "flashFee");
     }
+
+    function test_uniswapV3FlashCallback_permissions() public {
+        vm.expectRevert("UniswapV3Wrapper: Only active pool");
+        wrapper.uniswapV3FlashCallback({ fee0: 0, fee1: 0, params: "" });
+    }
 }

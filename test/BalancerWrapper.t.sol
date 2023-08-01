@@ -5,6 +5,8 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
+import { Arrays } from "src/utils/Arrays.sol";
+
 import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
 import { FlashBorrower } from "./FlashBorrower.sol";
 import { IERC20, BalancerWrapper } from "../src/balancer/BalancerWrapper.sol";
@@ -12,6 +14,9 @@ import { IERC20, BalancerWrapper } from "../src/balancer/BalancerWrapper.sol";
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract BalancerWrapperTest is PRBTest, StdCheats {
+    using Arrays for uint256;
+    using Arrays for address;
+
     BalancerWrapper internal wrapper;
     FlashBorrower internal borrower;
     IERC20 internal dai;
@@ -59,5 +64,24 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
             // borrowed
         assertEq(borrower.flashFee(), fee);
+    }
+
+    function test_receiveFlashLoan_permissions() public {
+        vm.expectRevert("BalancerWrapper: not balancer");
+        wrapper.receiveFlashLoan({
+            assets: address(dai).toArray(),
+            amounts: uint256(1e18).toArray(),
+            fees: uint256(0).toArray(),
+            params: ""
+        });
+
+        vm.prank(address(balancer));
+        vm.expectRevert("BalancerWrapper: params hash mismatch");
+        wrapper.receiveFlashLoan({
+            assets: address(dai).toArray(),
+            amounts: uint256(1e18).toArray(),
+            fees: uint256(0).toArray(),
+            params: ""
+        });
     }
 }

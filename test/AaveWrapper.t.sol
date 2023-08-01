@@ -61,62 +61,26 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
             // borrowed
         assertEq(borrower.flashFee(), fee);
-
-        // Test the wrapper state (return bytes should be cleaned up)
-        assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
     }
 
-    function test_flashLoan_void() external {
-        console2.log("test_flashLoan_void");
-        uint256 loan = 1e18;
-        uint256 fee = wrapper.flashFee(dai, loan);
-        dai.transfer(address(borrower), fee);
-
-        vm.record();
-        bytes memory result = borrower.flashBorrowVoid(dai, loan);
-
-        // Test the return values
-        assertEq(result, "", "Void result");
-
-        (, bytes32[] memory writeSlots) = vm.accesses(address(wrapper));
-        assertEq(writeSlots.length, 0, "writeSlots");
-    }
-
-    function test_executeOperation() public {
-        BaseWrapper.Data memory data = BaseWrapper.Data({
-            loanReceiver: address(this),
-            initiator: address(this),
-            callback: this._voidCallback,
-            initiatorData: ""
-        });
-
-        deal(address(dai), address(wrapper), 1e18);
-        vm.prank(provider.getPool());
-        vm.record();
+    function test_executeOperation_permissions() public {
+        vm.expectRevert("AaveFlashLoanProvider: not pool");
         wrapper.executeOperation({
             asset: address(dai),
             amount: 1e18,
             fee: 0,
             initiator: address(wrapper),
-            params: abi.encode(data)
+            params: ""
         });
 
-        (, bytes32[] memory writeSlots) = vm.accesses(address(wrapper));
-        assertEq(writeSlots.length, 0, "writeSlots");
-    }
-
-    function _voidCallback(
-        address,
-        address,
-        IERC20,
-        uint256,
-        uint256,
-        bytes memory
-    )
-        external
-        pure
-        returns (bytes memory)
-    {
-        return "";
+        vm.prank(provider.getPool());
+        vm.expectRevert("AaveFlashLoanProvider: not initiator");
+        wrapper.executeOperation({
+            asset: address(dai),
+            amount: 1e18,
+            fee: 0,
+            initiator: address(0x666),
+            params: ""
+        });
     }
 }

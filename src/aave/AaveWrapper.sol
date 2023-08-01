@@ -61,7 +61,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         override
         returns (bool)
     {
-        require(msg.sender == address(POOL), "not pool");
+        require(msg.sender == address(POOL), "AaveFlashLoanProvider: not pool");
         require(initiator == address(this), "AaveFlashLoanProvider: not initiator");
 
         _handleFlashLoan(IERC20(asset), amount, fee, params);

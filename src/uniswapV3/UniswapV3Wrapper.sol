@@ -108,7 +108,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         external
         override
     {
-        require(msg.sender == address(_activePool), "Only active pool");
+        require(msg.sender == address(_activePool), "UniswapV3Wrapper: Only active pool");
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
         IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());

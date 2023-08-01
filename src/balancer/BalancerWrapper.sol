@@ -44,8 +44,8 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         external
         override
     {
-        require(msg.sender == address(balancer), "not balancer");
-        require(keccak256(params) == flashLoanDataHash, "params hash mismatch");
+        require(msg.sender == address(balancer), "BalancerWrapper: not balancer");
+        require(keccak256(params) == flashLoanDataHash, "BalancerWrapper: params hash mismatch");
         delete flashLoanDataHash;
 
         _handleFlashLoan(IERC20(assets[0]), amounts[0], fees[0], params);
