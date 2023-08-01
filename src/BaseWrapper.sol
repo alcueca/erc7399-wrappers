@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.0;
 
@@ -47,9 +47,11 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
         return result;
     }
 
+    /// @dev Call the flashloan function in the child contract
     function _flashLoan(IERC20 asset, uint256 amount, bytes memory params) internal virtual;
 
-    function _handleFlashLoan(IERC20 asset, uint256 amount, uint256 fee, bytes memory params) internal {
+    /// @dev Handle the common parts of bridging the callback
+    function bridgeToCallback(IERC20 asset, uint256 amount, uint256 fee, bytes memory params) internal {
         Data memory data = abi.decode(params, (Data));
         _transferAssets(asset, amount, data.loanReceiver);
 
@@ -64,16 +66,22 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
         }
     }
 
+    /// @dev Transfer the assets to the loan receiver.
+    /// Override it if the provider can send the funds directly
     function _transferAssets(IERC20 asset, uint256 amount, address loanReceiver) internal virtual {
         asset.safeTransfer(loanReceiver, amount);
     }
 
+    /// @dev Approve the repayment of the loan to the provider if needed.
+    /// Override it if the provider can receive the funds directly and you want to avoid the if condition
     function _approveRepayment(IERC20 asset, uint256 amount, uint256 fee) internal virtual {
         if (_repayTo() == address(this)) {
             asset.approve(msg.sender, amount + fee);
         }
     }
 
+    /// @dev Where should the end client send the funds to repay the loan
+    /// Override it if the provider can receive the funds directly
     function _repayTo() internal view virtual returns (address) {
         return address(this);
     }

@@ -28,11 +28,13 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         }
     }
 
-    /// @dev The fee to be charged for a given loan.
-    /// @param asset The loan currency.
-    /// @param amount The amount of assets lent.
-    /// @return The amount of `asset` to be charged for the loan, on top of the returned principal. Returns
-    /// type(uint256).max if the loan is not possible.
+    /**
+     * @dev From ERC-3156. The fee to be charged for a given loan.
+     * @param asset The loan currency.
+     * @param amount The amount of assets lent.
+     * @return The amount of `asset` to be charged for the loan, on top of the returned principal.
+     * type(uint256).max if the loan is not possible.
+     */
     function flashFee(IERC20 asset, uint256 amount) external view returns (uint256) {
         IERC3156FlashLender lender = lenders[asset];
         require(address(lender) != address(0), "Unsupported currency");
@@ -48,15 +50,7 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         lender.flashLoan(this, address(asset), amount, data);
     }
 
-    /**
-     * @dev Receive a flash loan.
-     * @param erc3156initiator The initiator of the inner loan.
-     * @param asset The loan currency.
-     * @param amount The amount of assets lent.
-     * @param fee The additional amount of assets to repay.
-     * @param params Arbitrary data structure, intended to contain initiator-defined parameters.
-     * @return The keccak256 hash of "ERC3156FlashBorrower.onFlashLoan"
-     */
+    /// @inheritdoc IERC3156FlashBorrower
     function onFlashLoan(
         address erc3156initiator,
         address asset,
@@ -70,7 +64,7 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         require(erc3156initiator == address(this), "External loan initiator");
         require(msg.sender == address(lenders[IERC20(asset)]), "Unknown lender");
 
-        _handleFlashLoan(IERC20(asset), amount, fee, params);
+        bridgeToCallback(IERC20(asset), amount, fee, params);
 
         return CALLBACK_SUCCESS;
     }

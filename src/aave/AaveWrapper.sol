@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.0;
 
@@ -29,6 +29,13 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
     }
 
+    /**
+     * @dev From ERC-3156. The fee to be charged for a given loan.
+     * @param asset The loan currency.
+     * @param amount The amount of assets lent.
+     * @return fee The amount of `asset` to be charged for the loan, on top of the returned principal.
+     * type(uint256).max if the loan is not possible.
+     */
     function flashFee(IERC20 asset, uint256 amount) external view returns (uint256 fee) {
         DataTypes.ReserveData memory reserve = POOL.getReserveData(address(asset));
         DataTypes.ReserveConfigurationMap memory configuration = reserve.configuration;
@@ -50,6 +57,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         });
     }
 
+    /// @inheritdoc IFlashLoanSimpleReceiver
     function executeOperation(
         address asset,
         uint256 amount,
@@ -64,7 +72,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         require(msg.sender == address(POOL), "AaveFlashLoanProvider: not pool");
         require(initiator == address(this), "AaveFlashLoanProvider: not initiator");
 
-        _handleFlashLoan(IERC20(asset), amount, fee, params);
+        bridgeToCallback(IERC20(asset), amount, fee, params);
 
         return true;
     }

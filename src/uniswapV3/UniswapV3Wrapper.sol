@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 // Thanks to sunnyRK and yashnaman
 pragma solidity ^0.8.0;
 
@@ -78,6 +78,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
      * @param asset The loan currency.
      * @param amount The amount of assets lent.
      * @return The amount of `asset` to be charged for the loan, on top of the returned principal.
+     * type(uint256).max if the loan is not possible.
      */
     function flashFee(IERC20 asset, uint256 amount) public view override returns (uint256) {
         IUniswapV3Pool pool = getPool(asset, amount);
@@ -99,7 +100,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         delete _activePool;
     }
 
-    // Flashswap Callback
+    /// @inheritdoc IUniswapV3FlashCallback
     function uniswapV3FlashCallback(
         uint256 fee0, // Fee on Asset0
         uint256 fee1, // Fee on Asset1
@@ -114,7 +115,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
         uint256 amount = asset.balanceOf(address(this));
 
-        _handleFlashLoan(asset, amount, fee, params);
+        bridgeToCallback(asset, amount, fee, params);
     }
 
     function _repayTo() internal view override returns (address) {
