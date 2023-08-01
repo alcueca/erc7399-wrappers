@@ -65,22 +65,10 @@ contract AaveWrapperTest is PRBTest, StdCheats {
 
     function test_executeOperation_permissions() public {
         vm.expectRevert("AaveFlashLoanProvider: not pool");
-        wrapper.executeOperation({
-            asset: address(dai),
-            amount: 1e18,
-            fee: 0,
-            initiator: address(wrapper),
-            params: ""
-        });
+        wrapper.executeOperation({ asset: address(dai), amount: 1e18, fee: 0, initiator: address(wrapper), params: "" });
 
         vm.prank(provider.getPool());
         vm.expectRevert("AaveFlashLoanProvider: not initiator");
-        wrapper.executeOperation({
-            asset: address(dai),
-            amount: 1e18,
-            fee: 0,
-            initiator: address(0x666),
-            params: ""
-        });
+        wrapper.executeOperation({ asset: address(dai), amount: 1e18, fee: 0, initiator: address(0x666), params: "" });
     }
 }
