@@ -8,7 +8,7 @@ import { ReserveConfiguration } from "./interfaces/ReserveConfiguration.sol";
 import { IPoolAddressesProvider } from "./interfaces/IPoolAddressesProvider.sol";
 import { IFlashLoanSimpleReceiver } from "./interfaces/IFlashLoanSimpleReceiver.sol";
 
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { IERC20 } from "lib/erc7399/src/interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { BaseWrapper } from "../BaseWrapper.sol";

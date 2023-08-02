@@ -12,6 +12,6 @@
 [submodule "lib/erc3156"]
 	path = lib/erc3156
 	url = https://github.com/alcueca/erc3156
-[submodule "lib/erc3156pp"]
-	path = lib/erc3156pp
-	url = https://github.com/alcueca/erc3156pp
+[submodule "lib/erc7399"]
+	path = lib/erc7399
+	url = https://github.com/alcueca/erc7399

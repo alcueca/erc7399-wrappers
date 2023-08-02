@@ -54,7 +54,7 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
 
         // Test the return values
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
-        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
+        assertEq(uint256(callbackReturn), uint256(borrower.ERC7399_CALLBACK_SUCCESS()), "Callback failed");
 
         // Test the borrower state
         assertEq(borrower.flashInitiator(), address(borrower));
@@ -71,7 +71,7 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
         dai.transfer(address(wrapper), fee);
-        
+
         uint256 expectedGas = wrapper.setExpectedGas(dai);
 
         console2.log(expectedGas, "expectedGas");

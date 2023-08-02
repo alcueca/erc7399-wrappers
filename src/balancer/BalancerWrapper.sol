@@ -8,7 +8,7 @@ import { IFlashLoaner } from "./interfaces/IFlashLoaner.sol";
 import { Arrays } from "../utils/Arrays.sol";
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { IERC20 } from "lib/erc7399/src/interfaces/IERC20.sol";
 
 import { BaseWrapper } from "../BaseWrapper.sol";
 

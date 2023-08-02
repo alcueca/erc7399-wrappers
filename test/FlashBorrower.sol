@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { IERC7399 } from "lib/erc7399/src/interfaces/IERC7399.sol";
+import { IERC20 } from "lib/erc7399/src/interfaces/IERC20.sol";
 
 contract LoanReceiver {
     function retrieve(IERC20 asset) external {
@@ -11,8 +11,8 @@ contract LoanReceiver {
 }
 
 contract FlashBorrower {
-    bytes32 public constant ERC3156PP_CALLBACK_SUCCESS = keccak256("ERC3156PP_CALLBACK_SUCCESS");
-    IERC3156PPFlashLender lender;
+    bytes32 public constant ERC7399_CALLBACK_SUCCESS = keccak256("ERC7399_CALLBACK_SUCCESS");
+    IERC7399 lender;
     LoanReceiver loanReceiver;
 
     uint256 public flashBalance;
@@ -21,7 +21,7 @@ contract FlashBorrower {
     uint256 public flashAmount;
     uint256 public flashFee;
 
-    constructor(IERC3156PPFlashLender lender_) {
+    constructor(IERC7399 lender_) {
         lender = lender_;
         loanReceiver = new LoanReceiver();
     }
@@ -49,7 +49,7 @@ contract FlashBorrower {
         flashBalance = IERC20(asset).balanceOf(address(this));
         asset.transfer(paymentReceiver, amount + fee);
 
-        return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
+        return abi.encode(ERC7399_CALLBACK_SUCCESS);
     }
 
     function onSteal(
@@ -72,7 +72,7 @@ contract FlashBorrower {
 
         // do nothing
 
-        return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
+        return abi.encode(ERC7399_CALLBACK_SUCCESS);
     }
 
     function onReenter(
@@ -100,7 +100,7 @@ contract FlashBorrower {
         flashAmount += amount;
         flashFee += fee;
 
-        return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
+        return abi.encode(ERC7399_CALLBACK_SUCCESS);
     }
 
     function onFlashLoanVoid(
@@ -129,18 +129,18 @@ contract FlashBorrower {
     }
 
     function flashBorrow(IERC20 asset, uint256 amount) public returns (bytes memory) {
-        return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onFlashLoan);
+        return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoan);
     }
 
     function flashBorrowAndSteal(IERC20 asset, uint256 amount) public returns (bytes memory) {
-        return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onSteal);
+        return lender.flash(address(loanReceiver), asset, amount, "", this.onSteal);
     }
 
     function flashBorrowAndReenter(IERC20 asset, uint256 amount) public returns (bytes memory) {
-        return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onReenter);
+        return lender.flash(address(loanReceiver), asset, amount, "", this.onReenter);
     }
 
     function flashBorrowVoid(IERC20 asset, uint256 amount) public returns (bytes memory) {
-        return lender.flashLoan(address(loanReceiver), asset, amount, "", this.onFlashLoanVoid);
+        return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoanVoid);
     }
 }
