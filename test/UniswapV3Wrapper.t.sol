@@ -75,4 +75,18 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         vm.expectRevert("UniswapV3Wrapper: Only active pool");
         wrapper.uniswapV3FlashCallback({ fee0: 0, fee1: 0, params: "" });
     }
+
+    function test_setExpectedGas() external {
+        console2.log("test_setExpectedGas");
+
+        uint256 loan = 1e6;
+        uint256 fee = wrapper.flashFee(usdc, loan);
+        usdc.transfer(address(wrapper), fee * 5);
+
+        uint256 expectedGas = wrapper.setExpectedGas(usdc);
+
+        console2.log(expectedGas, "expectedGas");
+        assertGt(expectedGas, 0, "Expected gas not set");
+        assertEq(expectedGas, wrapper.expectedGas(), "Return value doesn't match");
+    }
 }

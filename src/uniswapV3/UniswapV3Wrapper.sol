@@ -96,7 +96,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         uint256 amount1 = asset == asset1 ? amount : 0;
 
         _activePool = pool;
-        pool.flash(address(this), amount0, amount1, data);
+        pool.flash(address(this), amount0, amount1, abi.encode(amount, data));
         delete _activePool;
     }
 
@@ -112,10 +112,11 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         require(msg.sender == address(_activePool), "UniswapV3Wrapper: Only active pool");
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
-        IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
-        uint256 amount = asset.balanceOf(address(this));
+        IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1()); // TODO: Wouldn't it be cheaper to pass this on `params`?
+        (uint256 amount, bytes memory data) = abi.decode(params, (uint256, bytes));
+        // uint256 amount = asset.balanceOf(address(this)); // TODO: This is not the amount we borrowed, but the amount we have in the contract. We should use the amount in data or calculate a delta
 
-        bridgeToCallback(asset, amount, fee, params);
+        bridgeToCallback(asset, amount, fee, data);
     }
 
     function _repayTo() internal view override returns (address) {

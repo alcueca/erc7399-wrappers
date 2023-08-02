@@ -68,6 +68,16 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         assertEq(writeSlots.length, 0, "writeSlots");
     }
 
+    function test_setExpectedGas() external {
+        console2.log("test_setExpectedGas");
+
+        uint256 expectedGas = wrapper.setExpectedGas(dai);
+
+        console2.log(expectedGas, "expectedGas");
+        assertGt(expectedGas, 0, "Expected gas not set");
+        assertEq(expectedGas, wrapper.expectedGas(), "Return value doesn't match");
+    }
+
     function _voidCallback(
         address,
         address,

@@ -64,4 +64,18 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
             // borrowed
         assertEq(borrower.flashFee(), fee);
     }
+
+    function test_setExpectedGas() external {
+        console2.log("test_setExpectedGas");
+
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(dai, loan);
+        dai.transfer(address(wrapper), fee);
+        
+        uint256 expectedGas = wrapper.setExpectedGas(dai);
+
+        console2.log(expectedGas, "expectedGas");
+        assertGt(expectedGas, 0, "Expected gas not set");
+        assertEq(expectedGas, wrapper.expectedGas(), "Return value doesn't match");
+    }
 }

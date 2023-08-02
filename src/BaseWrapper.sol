@@ -10,6 +10,8 @@ import { TransferHelper } from "./utils/TransferHelper.sol";
 abstract contract BaseWrapper is IERC3156PPFlashLender {
     using TransferHelper for IERC20;
 
+    event GasUsed(uint256 gasUsed);
+
     struct Data {
         address loanReceiver;
         address initiator;
@@ -18,6 +20,8 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
     }
 
     bytes internal _callbackResult;
+
+    uint256 public expectedGas;
 
     /// @inheritdoc IERC3156PPFlashLender
     function flashLoan(
@@ -84,5 +88,31 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
     /// Override it if the provider can receive the funds directly
     function _repayTo() internal view virtual returns (address) {
         return address(this);
+    }
+
+    /// @dev Measure and record gas used in flash loans
+    function setExpectedGas(IERC20 asset) external returns (uint256 gasUsed){
+        uint256 gasLeftBefore = gasleft();
+        this.flashLoan(address(this), asset, 10 ** asset.decimals(), "", this.gasCallback);
+
+        gasUsed = gasLeftBefore - gasleft();
+        expectedGas = gasUsed;
+        emit GasUsed(gasUsed);
+    }
+
+    /// @dev Callback function used to measure gas used in flash loans
+    function gasCallback(
+        address,
+        address repayTo,
+        IERC20 asset,
+        uint256 amount,
+        uint256 fee,
+        bytes memory
+    )
+        external
+        returns (bytes memory)
+    {
+        if (repayTo != address(0)) _transferAssets(asset, amount + fee, repayTo);
+        return "";
     }
 }
