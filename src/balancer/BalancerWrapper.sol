@@ -29,12 +29,19 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
      * @dev From ERC-3156. The fee to be charged for a given loan.
      * @param asset The loan currency.
      * @param amount The amount of assets lent.
-     * @return fee The amount of `asset` to be charged for the loan, on top of the returned principal.
+     * @return feeAmount The amount of `asset` to be charged for the loan, on top of the returned principal.
      * type(uint256).max if the loan is not possible.
      */
-    function flashFee(IERC20 asset, uint256 amount) external view returns (uint256 fee) {
-        if (amount >= asset.balanceOf(address(balancer))) fee = type(uint256).max;
-        else fee = amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+    function flashFee(IERC20 asset, uint256 amount) external view returns (uint256 feeAmount) {
+        feeAmount = amount < liquidity(asset) ? amount.mulWadUp(fee()) : type(uint256).max;
+    }
+
+    function fee() public view returns (uint256) {
+        return balancer.getProtocolFeesCollector().getFlashLoanFeePercentage();
+    }
+
+    function liquidity(IERC20 asset) public view returns (uint256 liquidity_) {
+        return asset.balanceOf(address(balancer));
     }
 
     function _flashLoan(IERC20 asset, uint256 amount, bytes memory data) internal override {
