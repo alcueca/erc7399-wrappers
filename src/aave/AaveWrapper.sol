@@ -17,15 +17,11 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
-    IPool public POOL;
+    IPool public immutable POOL;
 
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
         POOL = IPool(provider.getPool());
-    }
-
-    function updatePool() external {
-        POOL = IPool(ADDRESSES_PROVIDER.getPool());
     }
 
     /// @inheritdoc IERC7399
