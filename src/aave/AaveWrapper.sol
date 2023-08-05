@@ -8,10 +8,9 @@ import { ReserveConfiguration } from "./interfaces/ReserveConfiguration.sol";
 import { IPoolAddressesProvider } from "./interfaces/IPoolAddressesProvider.sol";
 import { IFlashLoanSimpleReceiver } from "./interfaces/IFlashLoanSimpleReceiver.sol";
 
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
-import { BaseWrapper } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
 contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
     using FixedPointMathLib for uint256;
@@ -29,28 +28,25 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         POOL = IPool(ADDRESSES_PROVIDER.getPool());
     }
 
-    /**
-     * @dev From ERC-3156. The fee to be charged for a given loan.
-     * @param asset The loan currency.
-     * @param amount The amount of assets lent.
-     * @return fee The amount of `asset` to be charged for the loan, on top of the returned principal.
-     * type(uint256).max if the loan is not possible.
-     */
-    function flashFee(IERC20 asset, uint256 amount) external view returns (uint256 fee) {
-        DataTypes.ReserveData memory reserve = POOL.getReserveData(address(asset));
+    /// @inheritdoc IERC7399
+    function maxFlashLoan(address asset) external view returns (uint256 max) {
+        DataTypes.ReserveData memory reserve = POOL.getReserveData(asset);
         DataTypes.ReserveConfigurationMap memory configuration = reserve.configuration;
 
-        if (
-            !configuration.getPaused() && configuration.getActive() && configuration.getFlashLoanEnabled()
-                && amount < asset.balanceOf(reserve.aTokenAddress)
-        ) fee = amount.mulWadUp(POOL.FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18);
-        else fee = type(uint256).max;
+        max = !configuration.getPaused() && configuration.getActive() && configuration.getFlashLoanEnabled()
+            ? ERC20(asset).balanceOf(reserve.aTokenAddress)
+            : 0;
     }
 
-    function _flashLoan(IERC20 asset, uint256 amount, bytes memory data) internal override {
+    /// @inheritdoc IERC7399
+    function flashFee(address, uint256 amount) external view returns (uint256) {
+        return amount.mulWadUp(POOL.FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18);
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
         POOL.flashLoanSimple({
             receiverAddress: address(this),
-            asset: address(asset),
+            asset: asset,
             amount: amount,
             params: data,
             referralCode: 0
@@ -72,7 +68,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         require(msg.sender == address(POOL), "AaveFlashLoanProvider: not pool");
         require(initiator == address(this), "AaveFlashLoanProvider: not initiator");
 
-        bridgeToCallback(IERC20(asset), amount, fee, params);
+        bridgeToCallback(asset, amount, fee, params);
 
         return true;
     }

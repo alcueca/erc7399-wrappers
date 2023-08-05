@@ -2,30 +2,29 @@
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.0;
 
-import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import "erc7399/IERC7399.sol";
 
-import { TransferHelper } from "./utils/TransferHelper.sol";
+import { TransferHelper, ERC20 } from "./utils/TransferHelper.sol";
 
-abstract contract BaseWrapper is IERC3156PPFlashLender {
-    using TransferHelper for IERC20;
+abstract contract BaseWrapper is IERC7399 {
+    using TransferHelper for address;
 
     struct Data {
         address loanReceiver;
         address initiator;
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback;
+        function(address, address, address, uint256, uint256, bytes memory) external returns (bytes memory) callback;
         bytes initiatorData;
     }
 
     bytes internal _callbackResult;
 
-    /// @inheritdoc IERC3156PPFlashLender
-    function flashLoan(
+    /// @inheritdoc IERC7399
+    function flash(
         address loanReceiver,
-        IERC20 asset,
+        address asset,
         uint256 amount,
         bytes calldata initiatorData,
-        function(address, address, IERC20, uint256, uint256, bytes memory) external returns (bytes memory) callback
+        function(address, address, address, uint256, uint256, bytes memory) external returns (bytes memory) callback
     )
         external
         returns (bytes memory result)
@@ -48,15 +47,15 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
     }
 
     /// @dev Call the flashloan function in the child contract
-    function _flashLoan(IERC20 asset, uint256 amount, bytes memory params) internal virtual;
+    function _flashLoan(address asset, uint256 amount, bytes memory params) internal virtual;
 
     /// @dev Handle the common parts of bridging the callback
-    function bridgeToCallback(IERC20 asset, uint256 amount, uint256 fee, bytes memory params) internal {
+    function bridgeToCallback(address asset, uint256 amount, uint256 fee, bytes memory params) internal {
         Data memory data = abi.decode(params, (Data));
         _transferAssets(asset, amount, data.loanReceiver);
 
         // call the callback and tell the callback receiver to repay the loan to this contract
-        bytes memory result = data.callback(data.initiator, _repayTo(), IERC20(asset), amount, fee, data.initiatorData);
+        bytes memory result = data.callback(data.initiator, _repayTo(), address(asset), amount, fee, data.initiatorData);
 
         _approveRepayment(asset, amount, fee);
 
@@ -68,15 +67,15 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
 
     /// @dev Transfer the assets to the loan receiver.
     /// Override it if the provider can send the funds directly
-    function _transferAssets(IERC20 asset, uint256 amount, address loanReceiver) internal virtual {
+    function _transferAssets(address asset, uint256 amount, address loanReceiver) internal virtual {
         asset.safeTransfer(loanReceiver, amount);
     }
 
     /// @dev Approve the repayment of the loan to the provider if needed.
     /// Override it if the provider can receive the funds directly and you want to avoid the if condition
-    function _approveRepayment(IERC20 asset, uint256 amount, uint256 fee) internal virtual {
+    function _approveRepayment(address asset, uint256 amount, uint256 fee) internal virtual {
         if (_repayTo() == address(this)) {
-            asset.approve(msg.sender, amount + fee);
+            ERC20(asset).approve(msg.sender, amount + fee);
         }
     }
 
