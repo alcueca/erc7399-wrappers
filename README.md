@@ -1,9 +1,9 @@
 # Foundry Template [![Open in Gitpod][gitpod-badge]][gitpod] [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![License: MIT][license-badge]][license]
 
-[gitpod]: https://gitpod.io/#https://github.com/alcueca/erc3156pp-wrappers
+[gitpod]: https://gitpod.io/#https://github.com/alcueca/erc7399-wrappers
 [gitpod-badge]: https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-FFB45B?logo=gitpod
-[gha]: https://github.com/alcueca/erc3156pp-wrappers/actions
-[gha-badge]: https://github.com/alcueca/erc3156pp-wrappers/actions/workflows/ci.yml/badge.svg
+[gha]: https://github.com/alcueca/erc7399-wrappers/actions
+[gha-badge]: https://github.com/alcueca/erc7399-wrappers/actions/workflows/ci.yml/badge.svg
 [foundry]: https://getfoundry.sh/
 [foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
 [license]: https://opensource.org/licenses/MIT

@@ -55,7 +55,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
 
         // Test the return values
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
-        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
+        assertEq(uint256(callbackReturn), uint256(borrower.ERC7399_CALLBACK_SUCCESS()), "Callback failed");
 
         // Test the borrower state
         assertEq(borrower.flashInitiator(), address(borrower));

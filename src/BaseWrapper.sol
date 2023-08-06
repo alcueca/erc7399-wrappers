@@ -2,12 +2,12 @@
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.0;
 
-import { IERC3156PPFlashLender } from "lib/erc3156pp/src/interfaces/IERC3156PPFlashLender.sol";
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { IERC7399 } from "lib/erc7399/src/interfaces/IERC7399.sol";
+import { IERC20 } from "lib/erc7399/src/interfaces/IERC20.sol";
 
 import { TransferHelper } from "./utils/TransferHelper.sol";
 
-abstract contract BaseWrapper is IERC3156PPFlashLender {
+abstract contract BaseWrapper is IERC7399 {
     using TransferHelper for IERC20;
 
     event GasUsed(uint256 gasUsed);
@@ -23,8 +23,8 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
 
     uint256 public expectedGas;
 
-    /// @inheritdoc IERC3156PPFlashLender
-    function flashLoan(
+    /// @inheritdoc IERC7399
+    function flash(
         address loanReceiver,
         IERC20 asset,
         uint256 amount,
@@ -91,9 +91,9 @@ abstract contract BaseWrapper is IERC3156PPFlashLender {
     }
 
     /// @dev Measure and record gas used in flash loans
-    function setExpectedGas(IERC20 asset) external returns (uint256 gasUsed){
+    function setExpectedGas(IERC20 asset) external returns (uint256 gasUsed) {
         uint256 gasLeftBefore = gasleft();
-        this.flashLoan(address(this), asset, 10 ** asset.decimals(), "", this.gasCallback);
+        this.flash(address(this), asset, 10 ** asset.decimals(), "", this.gasCallback);
 
         gasUsed = gasLeftBefore - gasleft();
         expectedGas = gasUsed;

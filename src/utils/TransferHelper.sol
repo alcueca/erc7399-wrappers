@@ -2,7 +2,7 @@
 // Taken from https://github.com/Uniswap/uniswap-lib/blob/master/src/libraries/TransferHelper.sol
 pragma solidity ^0.8.0;
 
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { IERC20 } from "lib/erc7399/src/interfaces/IERC20.sol";
 import "./RevertMsgExtractor.sol";
 
 // helper methods for interacting with ERC20 tokens and sending ETH that do not consistently return true/false

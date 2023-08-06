@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { IERC20 } from "lib/erc7399/src/interfaces/IERC20.sol";
 import { FlashBorrower } from "./FlashBorrower.sol";
 
 import { BaseWrapper } from "src/BaseWrapper.sol";
@@ -45,7 +45,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
 
         // Test the return values
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
-        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
+        assertEq(uint256(callbackReturn), uint256(borrower.ERC7399_CALLBACK_SUCCESS()), "Callback failed");
 
         // Test the wrapper state (return bytes should be cleaned up)
         assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
