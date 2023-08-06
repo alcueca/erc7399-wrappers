@@ -8,9 +8,8 @@ import { IFlashLoaner } from "./interfaces/IFlashLoaner.sol";
 import { Arrays } from "../utils/Arrays.sol";
 
 import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
 
-import { BaseWrapper } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
 contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
@@ -25,21 +24,19 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         balancer = _balancer;
     }
 
-    /**
-     * @dev From ERC-3156. The fee to be charged for a given loan.
-     * @param asset The loan currency.
-     * @param amount The amount of assets lent.
-     * @return fee The amount of `asset` to be charged for the loan, on top of the returned principal.
-     * type(uint256).max if the loan is not possible.
-     */
-    function flashFee(IERC20 asset, uint256 amount) external view returns (uint256 fee) {
-        if (amount >= asset.balanceOf(address(balancer))) fee = type(uint256).max;
-        else fee = amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+    /// @inheritdoc IERC7399
+    function maxFlashLoan(address asset) external view returns (uint256) {
+        return ERC20(asset).balanceOf(address(balancer));
     }
 
-    function _flashLoan(IERC20 asset, uint256 amount, bytes memory data) internal override {
+    /// @inheritdoc IERC7399
+    function flashFee(address, uint256 amount) external view returns (uint256) {
+        return amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
         flashLoanDataHash = keccak256(data);
-        balancer.flashLoan(this, address(asset).toArray(), amount.toArray(), data);
+        balancer.flashLoan(this, asset.toArray(), amount.toArray(), data);
     }
 
     /// @inheritdoc IFlashLoanRecipient
@@ -56,7 +53,7 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         require(keccak256(params) == flashLoanDataHash, "BalancerWrapper: params hash mismatch");
         delete flashLoanDataHash;
 
-        bridgeToCallback(IERC20(assets[0]), amounts[0], fees[0], params);
+        bridgeToCallback(assets[0], amounts[0], fees[0], params);
     }
 
     function _repayTo() internal view override returns (address) {

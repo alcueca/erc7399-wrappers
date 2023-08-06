@@ -5,18 +5,18 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { FlashBorrower } from "./FlashBorrower.sol";
-import { IERC20, AaveWrapper } from "../src/aave/AaveWrapper.sol";
-import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
+import { ERC20 } from "solmate/tokens/ERC20.sol";
 
-import { BaseWrapper } from "src/BaseWrapper.sol";
+import { FlashBorrower } from "./FlashBorrower.sol";
+import { AaveWrapper } from "../src/aave/AaveWrapper.sol";
+import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
     AaveWrapper internal wrapper;
     FlashBorrower internal borrower;
-    IERC20 internal dai;
+    address internal dai;
     IPoolAddressesProvider internal provider;
 
     /// @dev A function invoked before each test case is run.
@@ -29,7 +29,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
 
         vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 98_674_994 });
         provider = IPoolAddressesProvider(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
-        dai = IERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+        dai = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
         wrapper = new AaveWrapper(provider);
         borrower = new FlashBorrower(wrapper);
@@ -40,14 +40,18 @@ contract AaveWrapperTest is PRBTest, StdCheats {
     function test_flashFee() external {
         console2.log("test_flashFee");
         assertEq(wrapper.flashFee(dai, 1e18), 5e14, "Fee not right");
-        assertEq(wrapper.flashFee(dai, type(uint256).max), type(uint256).max, "Fee not max");
+    }
+
+    function test_maxFlashLoan() external {
+        console2.log("test_maxFlashLoan");
+        assertEq(wrapper.maxFlashLoan(dai), 3_258_387.712396344524653246e18, "Max flash loan not right");
     }
 
     function test_flashLoan() external {
         console2.log("test_flashLoan");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        dai.transfer(address(borrower), fee);
+        ERC20(dai).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
         // Test the return values

@@ -5,7 +5,8 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
+import { ERC20 } from "solmate/tokens/ERC20.sol";
+
 import { FlashBorrower } from "./FlashBorrower.sol";
 
 import { BaseWrapper } from "src/BaseWrapper.sol";
@@ -16,7 +17,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
     FooWrapper internal wrapper;
     FooLender internal lender;
     FlashBorrower internal borrower;
-    IERC20 internal dai;
+    address internal dai;
 
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
@@ -27,7 +28,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         }
 
         vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 98_674_994 });
-        dai = IERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+        dai = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
         lender = new FooLender();
         deal(address(dai), address(lender), 10_000_000e18);
@@ -40,7 +41,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        dai.transfer(address(borrower), fee);
+        ERC20(dai).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
         // Test the return values
@@ -55,7 +56,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan_void");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        dai.transfer(address(borrower), fee);
+        ERC20(dai).transfer(address(borrower), fee);
 
         vm.record();
         bytes memory result = borrower.flashBorrowVoid(dai, loan);
@@ -71,7 +72,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
     function _voidCallback(
         address,
         address,
-        IERC20,
+        ERC20,
         uint256,
         uint256,
         bytes memory
@@ -86,17 +87,17 @@ contract BaseWrapperTest is PRBTest, StdCheats {
 
 contract FooLender {
     function flashLoan(
-        IERC20 asset,
+        address asset,
         uint256 amount,
         bytes memory data,
-        function(IERC20,bytes memory) external callback
+        function(address,bytes memory) external callback
     )
         external
     {
-        uint256 balance = asset.balanceOf(address(this));
-        asset.transfer(msg.sender, amount);
+        uint256 balance = ERC20(asset).balanceOf(address(this));
+        ERC20(asset).transfer(msg.sender, amount);
         callback(asset, data);
-        require(asset.balanceOf(address(this)) >= balance, "FooLender: insufficient balance");
+        require(ERC20(asset).balanceOf(address(this)) >= balance, "FooLender: insufficient balance");
     }
 }
 
@@ -107,16 +108,16 @@ contract FooWrapper is BaseWrapper {
         lender = lender_;
     }
 
-    function flashFee(IERC20, uint256) external pure override returns (uint256) {
-        return 0;
-    }
-
-    function _flashLoan(IERC20 asset, uint256 amount, bytes memory params) internal virtual override {
+    function _flashLoan(address asset, uint256 amount, bytes memory params) internal virtual override {
         lender.flashLoan(asset, amount, params, this.flashLoanCallback);
     }
 
-    function flashLoanCallback(IERC20 asset, bytes memory params) external virtual {
-        bridgeToCallback(asset, asset.balanceOf(address(this)), 0, params);
-        asset.transfer(msg.sender, asset.balanceOf(address(this)));
+    function flashLoanCallback(address asset, bytes memory params) external virtual {
+        bridgeToCallback(asset, ERC20(asset).balanceOf(address(this)), 0, params);
+        ERC20(asset).transfer(msg.sender, ERC20(asset).balanceOf(address(this)));
     }
+
+    function maxFlashLoan(address token) external view override returns (uint256) { }
+
+    function flashFee(address token, uint256 amount) external view override returns (uint256) { }
 }

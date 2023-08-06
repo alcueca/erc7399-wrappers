@@ -6,12 +6,11 @@ import { IUniswapV3FlashCallback } from "./interfaces/callback/IUniswapV3FlashCa
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { PoolAddress } from "./interfaces/PoolAddress.sol";
 
-import { IERC20 } from "lib/erc3156pp/src/interfaces/IERC20.sol";
-
-import { BaseWrapper } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
 contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     using PoolAddress for address;
+    using { canLoan, balance } for IUniswapV3Pool;
 
     // CONSTANTS
     address public immutable factory;
@@ -20,15 +19,15 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     IUniswapV3Pool internal _activePool;
 
     // DEFAULT ASSETS
-    IERC20 weth;
-    IERC20 usdc;
-    IERC20 usdt;
+    address weth;
+    address usdc;
+    address usdt;
 
     /// @param factory_ Uniswap v3 UniswapV3Factory address
     /// @param weth_ Weth contract used in Uniswap v3 Pairs
     /// @param usdc_ usdc contract used in Uniswap v3 Pairs
     /// @param usdt_ usdt contract used in Uniswap v3 Pairs
-    constructor(address factory_, IERC20 weth_, IERC20 usdc_, IERC20 usdt_) {
+    constructor(address factory_, address weth_, address usdc_, address usdt_) {
         factory = factory_;
         weth = weth_;
         usdc = usdc_;
@@ -42,56 +41,54 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
      * @param amount The amount of assets to borrow.
      * @return pool The Uniswap V3 Pool that will be used as the source of the flash loan.
      */
-    function getPool(IERC20 asset, uint256 amount) public view returns (IUniswapV3Pool pool) {
+    function cheapestPool(address asset, uint256 amount) public view returns (IUniswapV3Pool pool) {
         // Try a stable pair first
-        pool = _checkPool(asset, asset == usdc ? usdt : usdc, 0.0001e6, amount);
-        if (address(pool) != address(0)) return pool;
+        pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
+        if (address(pool) != address(0) && pool.canLoan(asset, amount)) return pool;
 
         // Look for the cheapest fee otherwise
         uint16[3] memory fees = [0.0005e6, 0.003e6, 0.01e6];
-        IERC20 assetOther = asset == weth ? usdc : weth;
+        address assetOther = asset == weth ? usdc : weth;
         for (uint256 i = 0; i < 3; i++) {
-            pool = _checkPool(asset, assetOther, fees[i], amount);
-            if (address(pool) != address(0)) return pool;
+            pool = _pool(asset, assetOther, fees[i]);
+            if (address(pool) != address(0) && pool.canLoan(asset, amount)) return pool;
         }
 
         pool = IUniswapV3Pool(address(0));
     }
 
-    function _checkPool(
-        IERC20 asset,
-        IERC20 other,
-        uint24 fee,
-        uint256 amount
-    )
-        internal
-        view
-        returns (IUniswapV3Pool poolAddress)
-    {
-        PoolAddress.PoolKey memory poolKey = PoolAddress.getPoolKey(address(asset), address(other), fee);
-        poolAddress = IUniswapV3Pool(factory.computeAddress(poolKey));
-        poolAddress = asset.balanceOf(address(poolAddress)) >= amount ? poolAddress : IUniswapV3Pool(address(0));
+    /// @inheritdoc IERC7399
+    function maxFlashLoan(address asset) external view returns (uint256 max) {
+        // Try a stable pair first
+        IUniswapV3Pool pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
+        if (address(pool) != address(0)) {
+            max = pool.balance(asset);
+        }
+
+        uint16[3] memory fees = [0.0005e6, 0.003e6, 0.01e6];
+        address assetOther = asset == weth ? usdc : weth;
+        for (uint256 i = 0; i < 3; i++) {
+            pool = _pool(asset, assetOther, fees[i]);
+            uint256 _balance = pool.balance(asset);
+            if (address(pool) != address(0) && _balance > max) {
+                max = _balance;
+            }
+        }
     }
 
-    /**
-     * @dev From ERC-3156. The fee to be charged for a given loan.
-     * @param asset The loan currency.
-     * @param amount The amount of assets lent.
-     * @return The amount of `asset` to be charged for the loan, on top of the returned principal.
-     * type(uint256).max if the loan is not possible.
-     */
-    function flashFee(IERC20 asset, uint256 amount) public view override returns (uint256) {
-        IUniswapV3Pool pool = getPool(asset, amount);
-        if (address(pool) == address(0)) return type(uint256).max;
+    /// @inheritdoc IERC7399
+    function flashFee(address asset, uint256 amount) external view returns (uint256) {
+        IUniswapV3Pool pool = cheapestPool(asset, amount);
+        require(address(pool) != address(0), "Unsupported currency");
         return amount * uint256(pool.fee()) / 1e6;
     }
 
-    function _flashLoan(IERC20 asset, uint256 amount, bytes memory data) internal override {
-        IUniswapV3Pool pool = getPool(asset, amount);
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        IUniswapV3Pool pool = cheapestPool(asset, amount);
         require(address(pool) != address(0), "Unsupported currency");
 
-        IERC20 asset0 = IERC20(pool.token0());
-        IERC20 asset1 = IERC20(pool.token1());
+        address asset0 = address(pool.token0());
+        address asset1 = address(pool.token1());
         uint256 amount0 = asset == asset0 ? amount : 0;
         uint256 amount1 = asset == asset1 ? amount : 0;
 
@@ -112,8 +109,8 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         require(msg.sender == address(_activePool), "UniswapV3Wrapper: Only active pool");
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
-        IERC20 asset = IERC20(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
-        uint256 amount = asset.balanceOf(address(this));
+        address asset = address(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
+        uint256 amount = ERC20(asset).balanceOf(address(this));
 
         bridgeToCallback(asset, amount, fee, params);
     }
@@ -121,4 +118,17 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     function _repayTo() internal view override returns (address) {
         return msg.sender;
     }
+
+    function _pool(address asset, address other, uint24 fee) internal view returns (IUniswapV3Pool pool) {
+        PoolAddress.PoolKey memory poolKey = PoolAddress.getPoolKey(address(asset), address(other), fee);
+        pool = IUniswapV3Pool(factory.computeAddress(poolKey));
+    }
+}
+
+function canLoan(IUniswapV3Pool pool, address asset, uint256 amount) view returns (bool) {
+    return balance(pool, asset) >= amount;
+}
+
+function balance(IUniswapV3Pool pool, address asset) view returns (uint256) {
+    return ERC20(asset).balanceOf(address(pool));
 }
