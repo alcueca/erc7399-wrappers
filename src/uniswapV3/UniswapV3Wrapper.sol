@@ -93,7 +93,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         uint256 amount1 = asset == asset1 ? amount : 0;
 
         _activePool = pool;
-        pool.flash(address(this), amount0, amount1, data);
+        pool.flash(address(this), amount0, amount1, abi.encode(asset, amount, data));
         delete _activePool;
     }
 
@@ -109,10 +109,9 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         require(msg.sender == address(_activePool), "UniswapV3Wrapper: Only active pool");
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
-        address asset = address(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
-        uint256 amount = ERC20(asset).balanceOf(address(this));
+        (address asset, uint256 amount, bytes memory data) = abi.decode(params, (address, uint256, bytes));
 
-        bridgeToCallback(asset, amount, fee, params);
+        bridgeToCallback(asset, amount, fee, data);
     }
 
     function _repayTo() internal view override returns (address) {
