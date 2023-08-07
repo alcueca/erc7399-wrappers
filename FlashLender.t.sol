@@ -6,7 +6,7 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { FlashLender } from "../src/FlashLender.sol";
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 import { ERC20Mock } from "../src/test/ERC20Mock.sol";
 import { IERC20 } from "../src/interfaces/IERC20.sol";
 
@@ -15,7 +15,7 @@ import { IERC20 } from "../src/interfaces/IERC20.sol";
 /// https://book.getfoundry.sh/forge/writing-tests
 contract FlashLenderTest is PRBTest, StdCheats {
     FlashLender internal lender;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     IERC20 internal asset;
     IERC20 internal otherAsset;
 
@@ -29,7 +29,7 @@ contract FlashLenderTest is PRBTest, StdCheats {
         supportedAssets[0] = asset;
         supportedAssets[1] = otherAsset;
         lender = new FlashLender(supportedAssets, 10);
-        borrower = new FlashBorrower(lender);
+        borrower = new MockBorrower(lender);
 
         asset.transfer(address(lender), 999e18); // Keeping 1e18 for the flash fee.
         otherAsset.transfer(address(lender), 999e18); // Keeping 1e18 for the flash fee.

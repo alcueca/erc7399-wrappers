@@ -7,7 +7,7 @@ import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 
 import { BaseWrapper } from "src/BaseWrapper.sol";
 
@@ -16,7 +16,7 @@ import { BaseWrapper } from "src/BaseWrapper.sol";
 contract BaseWrapperTest is PRBTest, StdCheats {
     FooWrapper internal wrapper;
     FooLender internal lender;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     address internal dai;
 
     /// @dev A function invoked before each test case is run.
@@ -33,7 +33,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         lender = new FooLender();
         deal(address(dai), address(lender), 10_000_000e18);
         wrapper = new FooWrapper(lender);
-        borrower = new FlashBorrower(wrapper);
+        borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
 

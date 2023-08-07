@@ -10,7 +10,7 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Arrays } from "src/utils/Arrays.sol";
 
 import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 import { BalancerWrapper } from "../src/balancer/BalancerWrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
@@ -20,7 +20,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
     using Arrays for address;
 
     BalancerWrapper internal wrapper;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     address internal dai;
     IFlashLoaner internal balancer;
 
@@ -37,7 +37,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
         wrapper = new BalancerWrapper(balancer);
-        borrower = new FlashBorrower(wrapper);
+        borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
 

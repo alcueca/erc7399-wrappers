@@ -11,7 +11,8 @@ contract LoanReceiver {
     }
 }
 
-contract FlashBorrower {
+/// @dev Mock flash loan borrower. It allows to examine the state of the borrower during the callback.
+contract MockBorrower {
     bytes32 public constant ERC3156PP_CALLBACK_SUCCESS = keccak256("ERC3156PP_CALLBACK_SUCCESS");
     IERC7399 lender;
     LoanReceiver loanReceiver;
@@ -27,7 +28,7 @@ contract FlashBorrower {
         loanReceiver = new LoanReceiver();
     }
 
-    /// @dev ERC-3156++ Flash loan callback
+    /// @dev Flash loan callback
     function onFlashLoan(
         address initiator,
         address paymentReceiver,
@@ -39,8 +40,8 @@ contract FlashBorrower {
         external
         returns (bytes memory)
     {
-        require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
-        require(initiator == address(this), "FlashBorrower: External loan initiator");
+        require(msg.sender == address(lender), "MockBorrower: Untrusted lender");
+        require(initiator == address(this), "MockBorrower: External loan initiator");
 
         flashInitiator = initiator;
         flashAsset = asset;
@@ -64,8 +65,8 @@ contract FlashBorrower {
         external
         returns (bytes memory)
     {
-        require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
-        require(initiator == address(this), "FlashBorrower: External loan initiator");
+        require(msg.sender == address(lender), "MockBorrower: Untrusted lender");
+        require(initiator == address(this), "MockBorrower: External loan initiator");
         flashInitiator = initiator;
         flashAsset = asset;
         flashAmount = amount;
@@ -87,8 +88,8 @@ contract FlashBorrower {
         external
         returns (bytes memory)
     {
-        require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
-        require(initiator == address(this), "FlashBorrower: External loan initiator");
+        require(msg.sender == address(lender), "MockBorrower: Untrusted lender");
+        require(initiator == address(this), "MockBorrower: External loan initiator");
         flashInitiator = initiator;
         flashAsset = asset;
         loanReceiver.retrieve(asset);
@@ -115,8 +116,8 @@ contract FlashBorrower {
         external
         returns (bytes memory)
     {
-        require(msg.sender == address(lender), "FlashBorrower: Untrusted lender");
-        require(initiator == address(this), "FlashBorrower: External loan initiator");
+        require(msg.sender == address(lender), "MockBorrower: Untrusted lender");
+        require(initiator == address(this), "MockBorrower: External loan initiator");
 
         flashInitiator = initiator;
         flashAsset = asset;
