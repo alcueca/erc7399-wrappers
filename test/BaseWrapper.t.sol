@@ -11,8 +11,6 @@ import { MockBorrower } from "./MockBorrower.sol";
 
 import { BaseWrapper } from "src/BaseWrapper.sol";
 
-/// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
-/// https://book.getfoundry.sh/forge/writing-tests
 contract BaseWrapperTest is PRBTest, StdCheats {
     FooWrapper internal wrapper;
     FooLender internal lender;
@@ -44,7 +42,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         ERC20(dai).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
@@ -61,7 +59,7 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         vm.record();
         bytes memory result = borrower.flashBorrowVoid(dai, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         assertEq(result, "", "Void result");
 
         // Test the wrapper state, no storage writes on void results

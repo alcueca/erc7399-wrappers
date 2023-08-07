@@ -67,11 +67,11 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         ERC20(usdc).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(usdc, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
-        // Test the borrower state
+        // Test the borrower state during the callback
         assertEq(borrower.flashInitiator(), address(borrower), "flashInitiator");
         assertEq(address(borrower.flashAsset()), address(usdc), "flashAsset");
         assertEq(borrower.flashAmount(), loan, "flashAmount");
