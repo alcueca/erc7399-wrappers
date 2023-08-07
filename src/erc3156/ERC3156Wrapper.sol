@@ -8,7 +8,8 @@ import { BaseWrapper, IERC7399 } from "../BaseWrapper.sol";
 
 /**
  * @author Alberto Cuesta Cañada
- * @dev ERC3156++ Flash Lender that uses ERC3156 Flash Lenders as source of liquidity.
+ * @dev ERC7399 Flash Lender that uses ERC3156 Flash Lenders as source of liquidity.
+ * ERC3156 doesn't allow flow splitting or pushing repayments, so this wrapper is completely vanilla.
  */
 contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
     bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
@@ -44,7 +45,7 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         IERC3156FlashLender lender = lenders[asset];
         require(address(lender) != address(0), "Unsupported currency");
 
-        // We get funds from an ERC3156 lender to serve the ERC3156++ flash loan in our ERC3156 callback
+        // We get funds from an ERC3156 lender to serve the ERC7399 flash loan in our ERC3156 callback
         lender.flashLoan(this, address(asset), amount, data);
     }
 

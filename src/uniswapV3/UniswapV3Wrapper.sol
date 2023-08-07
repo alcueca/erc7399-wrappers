@@ -8,6 +8,8 @@ import { PoolAddress } from "./interfaces/PoolAddress.sol";
 
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
+/// @dev Uniswap V3 Flash Lender that uses Uniswap V3 Pools as source of liquidity.
+/// Uniswap V3 allows pushing repayments, so we override `_repayTo`.
 contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     using PoolAddress for address;
     using { canLoan, balance } for IUniswapV3Pool;
