@@ -84,7 +84,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
     }
 
     function test_uniswapV3FlashCallback_permissions() public {
-        vm.expectRevert("UniswapV3Wrapper: Unknown pool");
+        vm.expectRevert(UniswapV3Wrapper.UnknownPool.selector);
         wrapper.uniswapV3FlashCallback({
             fee0: 0,
             fee1: 0,

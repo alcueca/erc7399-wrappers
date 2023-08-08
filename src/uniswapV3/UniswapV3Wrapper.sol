@@ -16,6 +16,9 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     using PoolAddress for address;
     using { canLoan, balance } for IUniswapV3Pool;
 
+    error UnknownPool();
+    error UnsupportedCurrency(address asset);
+
     // CONSTANTS
     address public immutable factory;
 
@@ -78,13 +81,13 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
         IUniswapV3Pool pool = cheapestPool(asset, amount);
-        require(address(pool) != address(0), "Unsupported currency");
+        if (address(pool) == address(0)) revert UnsupportedCurrency(asset);
         return amount * uint256(pool.fee()) / 1e6;
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
         IUniswapV3Pool pool = cheapestPool(asset, amount);
-        require(address(pool) != address(0), "Unsupported currency");
+        if (address(pool) == address(0)) revert UnsupportedCurrency(asset);
 
         address asset0 = address(pool.token0());
         address asset1 = address(pool.token1());
@@ -105,7 +108,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     {
         (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
             abi.decode(params, (address, address, uint24, uint256, bytes));
-        require(msg.sender == address(_pool(asset, other, feeTier)), "UniswapV3Wrapper: Unknown pool");
+        if (msg.sender != address(_pool(asset, other, feeTier))) revert UnknownPool();
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
         bridgeToCallback(asset, amount, fee, data);
