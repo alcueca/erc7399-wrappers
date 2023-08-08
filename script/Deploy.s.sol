@@ -25,7 +25,7 @@ contract Deploy is BaseScript {
     IPoolAddressesProvider internal provider = IPoolAddressesProvider(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
 
     function run() public broadcast {
-        require(block.chainid == 42161, "Only deploy on Arbitrum");
+        require(block.chainid == 42_161, "Only deploy on Arbitrum");
 
         Registry registry = new Registry{salt: SALT}(broadcaster);
 
