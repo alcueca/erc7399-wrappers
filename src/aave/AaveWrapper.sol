@@ -31,7 +31,9 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
-        return amount >= _maxFlashLoan(asset) ? type(uint256).max : _flashFee(amount); // TODO: Revert if the asset is not supported
+        uint256 max = _maxFlashLoan(asset);
+        require(max > 0, "Unsupported currency");
+        return amount >= max ? type(uint256).max : _flashFee(amount);
     }
 
     /// @inheritdoc IFlashLoanSimpleReceiver
