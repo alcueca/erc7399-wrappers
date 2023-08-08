@@ -15,9 +15,6 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     // CONSTANTS
     address public immutable factory;
 
-    // ACCESS CONTROL
-    IUniswapV3Pool internal _activePool;
-
     // DEFAULT ASSETS
     address weth;
     address usdc;
@@ -92,9 +89,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         uint256 amount0 = asset == asset0 ? amount : 0;
         uint256 amount1 = asset == asset1 ? amount : 0;
 
-        _activePool = pool;
-        pool.flash(address(this), amount0, amount1, abi.encode(asset, amount, data));
-        delete _activePool;
+        pool.flash(address(this), amount0, amount1, abi.encode(asset0, asset1, pool.fee(), amount, data));
     }
 
     /// @inheritdoc IUniswapV3FlashCallback
@@ -106,11 +101,11 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         external
         override
     {
-        require(msg.sender == address(_activePool), "UniswapV3Wrapper: Only active pool");
+        (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
+            abi.decode(params, (address, address, uint24, uint256, bytes));
+        require(msg.sender == address(_pool(asset, other, feeTier)), "UniswapV3Wrapper: Unknown pool");
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
-        (address asset, uint256 amount, bytes memory data) = abi.decode(params, (address, uint256, bytes));
-
         bridgeToCallback(asset, amount, fee, data);
     }
 
