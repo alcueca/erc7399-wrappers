@@ -46,9 +46,6 @@ abstract contract BaseWrapper is IERC7399 {
         return result;
     }
 
-    /// @dev Call the flashloan function in the child contract
-    function _flashLoan(address asset, uint256 amount, bytes memory params) internal virtual;
-
     /// @dev Handle the common parts of bridging the callback
     function bridgeToCallback(address asset, uint256 amount, uint256 fee, bytes memory params) internal {
         Data memory data = abi.decode(params, (Data));
@@ -64,6 +61,9 @@ abstract contract BaseWrapper is IERC7399 {
             _callbackResult = result;
         }
     }
+
+    /// @dev Call the flashloan function in the child contract
+    function _flashLoan(address asset, uint256 amount, bytes memory params) internal virtual;
 
     /// @dev Transfer the assets to the loan receiver.
     /// Override it if the provider can send the funds directly

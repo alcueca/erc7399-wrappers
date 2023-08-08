@@ -26,17 +26,12 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) external view returns (uint256) {
-        return ERC20(asset).balanceOf(address(balancer));
+        return _maxFlashLoan(asset);
     }
 
     /// @inheritdoc IERC7399
-    function flashFee(address, uint256 amount) external view returns (uint256) {
-        return amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
-    }
-
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
-        flashLoanDataHash = keccak256(data);
-        balancer.flashLoan(this, asset.toArray(), amount.toArray(), data);
+    function flashFee(address asset, uint256 amount) external view returns (uint256) {
+        return amount >= _maxFlashLoan(asset) ? type(uint256).max : _flashFee(amount); // TODO: Revert if the asset is not supported
     }
 
     /// @inheritdoc IFlashLoanRecipient
@@ -56,7 +51,20 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         bridgeToCallback(assets[0], amounts[0], fees[0], params);
     }
 
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        flashLoanDataHash = keccak256(data);
+        balancer.flashLoan(this, asset.toArray(), amount.toArray(), data);
+    }
+
     function _repayTo() internal view override returns (address) {
         return address(balancer);
+    }
+
+    function _flashFee(uint256 amount) internal view returns (uint256) {
+        return amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+    }
+
+    function _maxFlashLoan(address asset) internal view returns (uint256) {
+        return ERC20(asset).balanceOf(address(balancer));
     }
 }
