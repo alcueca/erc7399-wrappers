@@ -53,7 +53,7 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         require(erc3156initiator == address(this), "External loan initiator");
         require(msg.sender == address(lenders[asset]), "Unknown lender");
 
-        bridgeToCallback(asset, amount, fee, params);
+        _bridgeToCallback(asset, amount, fee, params);
 
         return CALLBACK_SUCCESS;
     }

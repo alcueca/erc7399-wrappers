@@ -49,7 +49,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         require(msg.sender == address(POOL), "AaveFlashLoanProvider: not pool");
         require(initiator == address(this), "AaveFlashLoanProvider: not initiator");
 
-        bridgeToCallback(asset, amount, fee, params);
+        _bridgeToCallback(asset, amount, fee, params);
 
         return true;
     }

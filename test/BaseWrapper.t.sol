@@ -113,7 +113,7 @@ contract FooWrapper is BaseWrapper {
     }
 
     function flashLoanCallback(address asset, bytes memory params) external virtual {
-        bridgeToCallback(asset, ERC20(asset).balanceOf(address(this)), 0, params);
+        _bridgeToCallback(asset, ERC20(asset).balanceOf(address(this)), 0, params);
         ERC20(asset).transfer(msg.sender, ERC20(asset).balanceOf(address(this)));
     }
 

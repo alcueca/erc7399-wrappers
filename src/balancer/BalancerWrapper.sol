@@ -48,7 +48,7 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         require(keccak256(params) == flashLoanDataHash, "BalancerWrapper: params hash mismatch");
         delete flashLoanDataHash;
 
-        bridgeToCallback(assets[0], amounts[0], fees[0], params);
+        _bridgeToCallback(assets[0], amounts[0], fees[0], params);
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {

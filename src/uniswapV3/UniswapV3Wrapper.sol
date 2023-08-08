@@ -84,7 +84,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         address asset = address(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
         uint256 amount = ERC20(asset).balanceOf(address(this));
 
-        bridgeToCallback(asset, amount, fee, params);
+        _bridgeToCallback(asset, amount, fee, params);
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
