@@ -6,6 +6,19 @@ import "erc7399/IERC7399.sol";
 
 import { TransferHelper, ERC20 } from "./utils/TransferHelper.sol";
 
+/// @dev All ERC7399 flash loan wrappers have the same general structure.
+/// - The ERC7399 `flash` function is the entry point for the flash loan.
+/// - The wrapper calls the underlying lender flash lender on their non-ERC7399 flash lending call to borrow the funds.
+/// -     The lender sends the funds to the wrapper.
+/// -         The wrapper receives the callback from the lender.
+/// -         The wrapper sends the funds to the loan receiver.
+/// -         The wrapper calls the callback supplied by the original borrower.
+/// -             The callback from the original borrower executes.
+/// -         Depending on the lender, the wrapper may have to approve it to pull the repayment.
+/// -         If there is any data to return, it is kept in a storage variable.
+/// -         The wrapper exits the callback.
+/// -     The lender verifies or pulls the repayment.
+/// - The wrapper returns to the original borrower the stored result of its callback.
 abstract contract BaseWrapper is IERC7399 {
     using TransferHelper for address;
 
@@ -19,6 +32,9 @@ abstract contract BaseWrapper is IERC7399 {
     bytes internal _callbackResult;
 
     /// @inheritdoc IERC7399
+    /// @dev The entry point for the ERC7399 flash loan. Packs data to convert the legacy flash loan into an ERC7399
+    /// flash loan. Then it calls the legacy flash loan. Once the flash loan is done, checks if there is any return
+    /// data and returns it.
     function flash(
         address loanReceiver,
         address asset,
@@ -46,10 +62,12 @@ abstract contract BaseWrapper is IERC7399 {
         return result;
     }
 
-    /// @dev Call the flashloan function in the child contract
+    /// @dev Call the legacy flashloan function in the child contract. This is where we borrow from Aave, Uniswap, etc.
     function _flashLoan(address asset, uint256 amount, bytes memory params) internal virtual;
 
-    /// @dev Handle the common parts of bridging the callback
+    /// @dev Handle the common parts of bridging the callback from legacy to ERC7399. Transfer the funds to the loan
+    /// receiver. Call the callback supplied by the original borrower. Approve the repayment if necessary. If there is
+    /// any result, it is kept in a storage variable to be retrieved on `flash` after the legacy flash loan is finished.
     function bridgeToCallback(address asset, uint256 amount, uint256 fee, bytes memory params) internal {
         Data memory data = abi.decode(params, (Data));
         _transferAssets(asset, amount, data.loanReceiver);

@@ -7,7 +7,7 @@ import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 import { AaveWrapper } from "../src/aave/AaveWrapper.sol";
 import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
 
@@ -15,7 +15,7 @@ import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesPro
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
     AaveWrapper internal wrapper;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     address internal dai;
     IPoolAddressesProvider internal provider;
 
@@ -32,7 +32,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         dai = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
         wrapper = new AaveWrapper(provider);
-        borrower = new FlashBorrower(wrapper);
+        borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
 
@@ -54,11 +54,11 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         ERC20(dai).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
-        // Test the borrower state
+        // Test the borrower state during the callback
         assertEq(borrower.flashInitiator(), address(borrower));
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);

@@ -10,7 +10,7 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { Arrays } from "src/utils/Arrays.sol";
 
 import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 import { BalancerWrapper } from "../src/balancer/BalancerWrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
@@ -20,7 +20,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
     using Arrays for address;
 
     BalancerWrapper internal wrapper;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     address internal dai;
     IFlashLoaner internal balancer;
 
@@ -37,7 +37,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
         wrapper = new BalancerWrapper(balancer);
-        borrower = new FlashBorrower(wrapper);
+        borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
 
@@ -59,11 +59,11 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         ERC20(dai).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
-        // Test the borrower state
+        // Test the borrower state during the callback
         assertEq(borrower.flashInitiator(), address(borrower));
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);

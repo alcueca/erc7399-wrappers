@@ -11,6 +11,9 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
+
+/// @dev Balancer Flash Lender that uses Balancer Pools as source of liquidity.
+/// Balancer allows pushing repayments, so we override `_repayTo`.
 contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
