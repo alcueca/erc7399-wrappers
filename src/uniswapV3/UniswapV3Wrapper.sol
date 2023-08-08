@@ -20,9 +20,9 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     address public immutable factory;
 
     // DEFAULT ASSETS
-    address weth;
-    address usdc;
-    address usdt;
+    address public immutable weth;
+    address public immutable usdc;
+    address public immutable usdt;
 
     /// @param registry Registry storing constructor parameters
     constructor(Registry registry) {
@@ -30,12 +30,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         // @param weth_ Weth contract used in Uniswap v3 Pairs
         // @param usdc_ usdc contract used in Uniswap v3 Pairs
         // @param usdt_ usdt contract used in Uniswap v3 Pairs
-        (address factory_, address weth_, address usdc_, address usdt_) =
-            abi.decode(registry.get("UniswapV3Wrapper"), (address, address, address, address));
-        factory = factory_;
-        weth = weth_;
-        usdc = usdc_;
-        usdt = usdt_;
+        (factory, weth, usdc, usdt) = abi.decode(registry.get("UniswapV3Wrapper"), (address, address, address, address));
     }
 
     /**
