@@ -13,7 +13,7 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
 
-/// @dev Aave Flash Lender that uses Aave Pools as source of liquidity.
+/// @dev Aave Flash Lender that uses the Aave Pool as source of liquidity.
 /// Aave doesn't allow flow splitting or pushing repayments, so this wrapper is completely vanilla.
 contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
     using FixedPointMathLib for uint256;

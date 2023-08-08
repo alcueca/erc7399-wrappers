@@ -31,6 +31,7 @@ abstract contract BaseWrapper is IERC7399 {
 
     bytes internal _callbackResult;
 
+    /// @inheritdoc IERC7399
     /// @dev The entry point for the ERC7399 flash loan. Packs data to convert the legacy flash loan into an ERC7399
     /// flash loan. Then it calls the legacy flash loan. Once the flash loan is done, checks if there is any return
     /// data and returns it.
