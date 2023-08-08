@@ -2,6 +2,8 @@
 // Thanks to sunnyRK and yashnaman
 pragma solidity ^0.8.0;
 
+import { Registry } from "lib/registry/src/Registry.sol";
+
 import { IUniswapV3FlashCallback } from "./interfaces/callback/IUniswapV3FlashCallback.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { PoolAddress } from "./interfaces/PoolAddress.sol";
@@ -22,11 +24,14 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     address usdc;
     address usdt;
 
-    /// @param factory_ Uniswap v3 UniswapV3Factory address
-    /// @param weth_ Weth contract used in Uniswap v3 Pairs
-    /// @param usdc_ usdc contract used in Uniswap v3 Pairs
-    /// @param usdt_ usdt contract used in Uniswap v3 Pairs
-    constructor(address factory_, address weth_, address usdc_, address usdt_) {
+    /// @param registry Registry storing constructor parameters
+    constructor(Registry registry) {
+        // @param factory_ Uniswap v3 UniswapV3Factory address
+        // @param weth_ Weth contract used in Uniswap v3 Pairs
+        // @param usdc_ usdc contract used in Uniswap v3 Pairs
+        // @param usdt_ usdt contract used in Uniswap v3 Pairs
+        (address factory_, address weth_, address usdc_, address usdt_) =
+            abi.decode(registry.get("UniswapV3Wrapper"), (address, address, address, address));
         factory = factory_;
         weth = weth_;
         usdc = usdc_;

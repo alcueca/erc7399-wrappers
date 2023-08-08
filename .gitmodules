@@ -15,3 +15,6 @@
 [submodule "lib/erc7399"]
 	path = lib/erc7399
 	url = https://github.com/alcueca/erc7399
+[submodule "lib/registry"]
+	path = lib/registry
+	url = https://github.com/alcueca/registry
