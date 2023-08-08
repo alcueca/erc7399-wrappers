@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Thanks to ultrasecr.eth
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 library Arrays {
     function toArray(uint256 n) internal pure returns (uint256[] memory arr) {

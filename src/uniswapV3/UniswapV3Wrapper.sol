@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-// Thanks to sunnyRK and yashnaman
-pragma solidity ^0.8.0;
+// Thanks to sunnyRK, yashnaman & ultrasecr.eth
+pragma solidity ^0.8.19;
 
 import { Registry } from "lib/registry/src/Registry.sol";
 
@@ -24,13 +24,13 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     address public immutable usdc;
     address public immutable usdt;
 
-    /// @param registry Registry storing constructor parameters
-    constructor(Registry registry) {
+    /// @param reg Registry storing constructor parameters
+    constructor(Registry reg) {
         // @param factory_ Uniswap v3 UniswapV3Factory address
         // @param weth_ Weth contract used in Uniswap v3 Pairs
         // @param usdc_ usdc contract used in Uniswap v3 Pairs
         // @param usdt_ usdt contract used in Uniswap v3 Pairs
-        (factory, weth, usdc, usdt) = abi.decode(registry.get("UniswapV3Wrapper"), (address, address, address, address));
+        (factory, weth, usdc, usdt) = abi.decode(reg.get("UniswapV3Wrapper"), (address, address, address, address));
     }
 
     /**

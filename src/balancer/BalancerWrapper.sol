@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Thanks to ultrasecr.eth
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 import { IFlashLoanRecipient } from "./interfaces/IFlashLoanRecipient.sol";
 import { IFlashLoaner } from "./interfaces/IFlashLoaner.sol";
@@ -11,13 +11,15 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
-
 /// @dev Balancer Flash Lender that uses Balancer Pools as source of liquidity.
 /// Balancer allows pushing repayments, so we override `_repayTo`.
 contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
     using FixedPointMathLib for uint256;
+
+    error NotBalancer();
+    error HashMismatch();
 
     IFlashLoaner public immutable balancer;
 
@@ -52,8 +54,8 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         external
         override
     {
-        require(msg.sender == address(balancer), "BalancerWrapper: not balancer");
-        require(keccak256(params) == flashLoanDataHash, "BalancerWrapper: params hash mismatch");
+        if (msg.sender != address(balancer)) revert NotBalancer();
+        if (keccak256(params) != flashLoanDataHash) revert HashMismatch();
         delete flashLoanDataHash;
 
         bridgeToCallback(assets[0], amounts[0], fees[0], params);

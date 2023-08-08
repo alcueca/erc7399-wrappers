@@ -2,7 +2,7 @@
 // Taken from
 // https://github.com/sushiswap/BoringSolidity/blob/441e51c0544cf2451e6116fe00515e71d7c42e2c/src/BoringBatchable.sol
 
-pragma solidity >=0.6.0;
+pragma solidity ^0.8.19;
 
 library RevertMsgExtractor {
     /// @dev Helper function to extract a useful revert message from a failed call.
@@ -11,6 +11,7 @@ library RevertMsgExtractor {
         // If the _res length is less than 68, then the transaction failed silently (without a revert message)
         if (returnData.length < 68) return "Transaction reverted silently";
 
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             // Slice the sighash.
             returnData := add(returnData, 0x04)
