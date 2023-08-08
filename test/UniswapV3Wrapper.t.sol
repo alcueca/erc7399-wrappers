@@ -81,7 +81,11 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
     }
 
     function test_uniswapV3FlashCallback_permissions() public {
-        vm.expectRevert("UniswapV3Wrapper: Only active pool");
-        wrapper.uniswapV3FlashCallback({ fee0: 0, fee1: 0, params: "" });
+        vm.expectRevert("UniswapV3Wrapper: Unknown pool");
+        wrapper.uniswapV3FlashCallback({
+            fee0: 0,
+            fee1: 0,
+            params: abi.encode(address(usdc), address(usdt), uint24(0.0005e6), uint256(0), "")
+        });
     }
 }
