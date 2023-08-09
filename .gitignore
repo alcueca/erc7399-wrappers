@@ -11,6 +11,7 @@ out
 .pnp.*
 lcov.info
 yarn.lock
+.secret
 
 # broadcasts
 !broadcast
