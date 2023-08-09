@@ -15,6 +15,7 @@
   solc = "0.8.19"
   src = "src"
   test = "test"
+  evm_version = 'london'
 
 [profile.ci]
   fuzz = { runs = 10_000 }

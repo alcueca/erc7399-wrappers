@@ -11,7 +11,7 @@ import { AaveWrapper, IPoolAddressesProvider } from "../src/aave/AaveWrapper.sol
 import { BalancerWrapper, IFlashLoaner } from "../src/balancer/BalancerWrapper.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
-contract Deploy is BaseScript {
+contract ArbitrumDeploy is BaseScript {
     bytes32 public constant SALT = keccak256("ERC7399-wrappers");
 
     address internal factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
@@ -27,12 +27,13 @@ contract Deploy is BaseScript {
     function run() public broadcast {
         require(block.chainid == 42_161, "Only deploy on Arbitrum");
 
-        Registry registry = new Registry{salt: SALT}(broadcaster);
+        console2.log("Deploying as %s", msg.sender);
+
+        Registry registry = new Registry{salt: SALT}(msg.sender);
 
         console2.log("Registry deployed at: %s", address(registry));
 
         registry.set("UniswapV3Wrapper", abi.encode(factory, weth, usdc, usdt));
-
         UniswapV3Wrapper uniswapV3Wrapper = new UniswapV3Wrapper{salt: SALT}(registry);
         console2.log("UniswapV3Wrapper deployed at: %s", address(uniswapV3Wrapper));
 
