@@ -7,7 +7,7 @@ import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 import { UniswapV3Wrapper } from "../src/uniswapV3/UniswapV3Wrapper.sol";
 import { IUniswapV3Factory } from "../src/uniswapV3/interfaces/IUniswapV3Factory.sol";
 
@@ -15,7 +15,7 @@ import { IUniswapV3Factory } from "../src/uniswapV3/interfaces/IUniswapV3Factory
 /// https://book.getfoundry.sh/forge/writing-tests
 contract UniswapV3WrapperTest is PRBTest, StdCheats {
     UniswapV3Wrapper internal wrapper;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     address internal usdc;
     address internal usdt;
     address internal weth;
@@ -38,7 +38,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
         wrapper = new UniswapV3Wrapper(address(factory), weth, usdc, usdt);
-        borrower = new FlashBorrower(wrapper);
+        borrower = new MockBorrower(wrapper);
         deal(address(usdc), address(this), 1e6); // For fees
     }
 
@@ -67,11 +67,11 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         ERC20(usdc).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(usdc, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
-        // Test the borrower state
+        // Test the borrower state during the callback
         assertEq(borrower.flashInitiator(), address(borrower), "flashInitiator");
         assertEq(address(borrower.flashAsset()), address(usdc), "flashAsset");
         assertEq(borrower.flashAmount(), loan, "flashAmount");
@@ -81,7 +81,11 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
     }
 
     function test_uniswapV3FlashCallback_permissions() public {
-        vm.expectRevert("UniswapV3Wrapper: Only active pool");
-        wrapper.uniswapV3FlashCallback({ fee0: 0, fee1: 0, params: "" });
+        vm.expectRevert("UniswapV3Wrapper: Unknown pool");
+        wrapper.uniswapV3FlashCallback({
+            fee0: 0,
+            fee1: 0,
+            params: abi.encode(address(usdc), address(usdt), uint24(0.0005e6), uint256(0), "")
+        });
     }
 }

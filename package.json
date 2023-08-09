@@ -1,6 +1,6 @@
 {
-  "name": "@alcueca/erc3156pp-wrappers",
-  "description": "Wrappers for existing Flash Lenders to be accessible as ERC3156++ Flash Lenders",
+  "name": "@alcueca/erc7399-wrappers",
+  "description": "Wrappers for existing Flash Lenders to be accessible as ERC7399 Flash Lenders",
   "version": "1.0.0",
   "author": {
     "name": "alcueca",

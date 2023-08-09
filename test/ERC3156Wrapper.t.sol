@@ -8,14 +8,14 @@ import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156Fl
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
-import { FlashBorrower } from "./FlashBorrower.sol";
+import { MockBorrower } from "./MockBorrower.sol";
 import { ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract ERC3156WrapperTest is PRBTest, StdCheats {
     ERC3156Wrapper internal wrapper;
-    FlashBorrower internal borrower;
+    MockBorrower internal borrower;
     address internal dai;
     IERC3156FlashLender internal makerFlash;
 
@@ -36,7 +36,7 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         IERC3156FlashLender[] memory lenders = new IERC3156FlashLender[](1);
         lenders[0] = makerFlash;
         wrapper = new ERC3156Wrapper(assets, lenders);
-        borrower = new FlashBorrower(wrapper);
+        borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
 
@@ -58,11 +58,11 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         ERC20(dai).transfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
-        // Test the return values
+        // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
         assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
 
-        // Test the borrower state
+        // Test the borrower state during the callback
         assertEq(borrower.flashInitiator(), address(borrower));
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);

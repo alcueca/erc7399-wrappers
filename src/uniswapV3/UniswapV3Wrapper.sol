@@ -8,15 +8,14 @@ import { PoolAddress } from "./interfaces/PoolAddress.sol";
 
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
+/// @dev Uniswap V3 Flash Lender that uses Uniswap V3 Pools as source of liquidity.
+/// Uniswap V3 allows pushing repayments, so we override `_repayTo`.
 contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     using PoolAddress for address;
     using { canLoan, balance } for IUniswapV3Pool;
 
     // CONSTANTS
     address public immutable factory;
-
-    // ACCESS CONTROL
-    IUniswapV3Pool internal _activePool;
 
     // DEFAULT ASSETS
     address weth;
@@ -78,13 +77,12 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         external
         override
     {
-        require(msg.sender == address(_activePool), "UniswapV3Wrapper: Only active pool");
+        (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
+            abi.decode(params, (address, address, uint24, uint256, bytes));
+        require(msg.sender == address(_pool(asset, other, feeTier)), "UniswapV3Wrapper: Unknown pool");
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
-        address asset = address(fee0 > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1());
-        uint256 amount = ERC20(asset).balanceOf(address(this));
-
-        _bridgeToCallback(asset, amount, fee, params);
+        _bridgeToCallback(asset, amount, fee, data);
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
@@ -96,9 +94,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         uint256 amount0 = asset == asset0 ? amount : 0;
         uint256 amount1 = asset == asset1 ? amount : 0;
 
-        _activePool = pool;
-        pool.flash(address(this), amount0, amount1, data);
-        delete _activePool;
+        pool.flash(address(this), amount0, amount1, abi.encode(asset0, asset1, pool.fee(), amount, data));
     }
 
     function _repayTo() internal view override returns (address) {
