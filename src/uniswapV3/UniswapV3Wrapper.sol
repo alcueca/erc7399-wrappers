@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
-// Thanks to sunnyRK and yashnaman
-pragma solidity ^0.8.0;
+// Thanks to sunnyRK, yashnaman & ultrasecr.eth
+pragma solidity ^0.8.19;
+
+import { Registry } from "lib/registry/src/Registry.sol";
 
 import { IUniswapV3FlashCallback } from "./interfaces/callback/IUniswapV3FlashCallback.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
@@ -14,23 +16,24 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     using PoolAddress for address;
     using { canLoan, balance } for IUniswapV3Pool;
 
+    error UnknownPool();
+    error UnsupportedCurrency(address asset);
+
     // CONSTANTS
     address public immutable factory;
 
     // DEFAULT ASSETS
-    address weth;
-    address usdc;
-    address usdt;
+    address public immutable weth;
+    address public immutable usdc;
+    address public immutable usdt;
 
-    /// @param factory_ Uniswap v3 UniswapV3Factory address
-    /// @param weth_ Weth contract used in Uniswap v3 Pairs
-    /// @param usdc_ usdc contract used in Uniswap v3 Pairs
-    /// @param usdt_ usdt contract used in Uniswap v3 Pairs
-    constructor(address factory_, address weth_, address usdc_, address usdt_) {
-        factory = factory_;
-        weth = weth_;
-        usdc = usdc_;
-        usdt = usdt_;
+    /// @param reg Registry storing constructor parameters
+    constructor(Registry reg) {
+        // @param factory_ Uniswap v3 UniswapV3Factory address
+        // @param weth_ Weth contract used in Uniswap v3 Pairs
+        // @param usdc_ usdc contract used in Uniswap v3 Pairs
+        // @param usdt_ usdt contract used in Uniswap v3 Pairs
+        (factory, weth, usdc, usdt) = abi.decode(reg.get("UniswapV3Wrapper"), (address, address, address, address));
     }
 
     /**
@@ -68,6 +71,18 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         return amount >= max ? type(uint256).max : _flashFee(asset, amount);
     }
 
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        IUniswapV3Pool pool = cheapestPool(asset, amount);
+        if (address(pool) == address(0)) revert UnsupportedCurrency(asset);
+
+        address asset0 = address(pool.token0());
+        address asset1 = address(pool.token1());
+        uint256 amount0 = asset == asset0 ? amount : 0;
+        uint256 amount1 = asset == asset1 ? amount : 0;
+
+        pool.flash(address(this), amount0, amount1, abi.encode(asset0, asset1, pool.fee(), amount, data));
+    }
+
     /// @inheritdoc IUniswapV3FlashCallback
     function uniswapV3FlashCallback(
         uint256 fee0, // Fee on Asset0
@@ -79,7 +94,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     {
         (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
             abi.decode(params, (address, address, uint24, uint256, bytes));
-        require(msg.sender == address(_pool(asset, other, feeTier)), "UniswapV3Wrapper: Unknown pool");
+        if (msg.sender != address(_pool(asset, other, feeTier))) revert UnknownPool();
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
         _bridgeToCallback(asset, amount, fee, data);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Thanks to ultrasecr.eth
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 import { IFlashLoanRecipient } from "./interfaces/IFlashLoanRecipient.sol";
 import { IFlashLoaner } from "./interfaces/IFlashLoaner.sol";
@@ -17,6 +17,9 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
     using FixedPointMathLib for uint256;
+
+    error NotBalancer();
+    error HashMismatch();
 
     IFlashLoaner public immutable balancer;
 
@@ -48,8 +51,8 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         external
         override
     {
-        require(msg.sender == address(balancer), "BalancerWrapper: not balancer");
-        require(keccak256(params) == flashLoanDataHash, "BalancerWrapper: params hash mismatch");
+        if (msg.sender != address(balancer)) revert NotBalancer();
+        if (keccak256(params) != flashLoanDataHash) revert HashMismatch();
         delete flashLoanDataHash;
 
         _bridgeToCallback(assets[0], amounts[0], fees[0], params);

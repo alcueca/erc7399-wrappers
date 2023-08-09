@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Thanks to ultrasecr.eth
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 import { IPool } from "./interfaces/IPool.sol";
 import { DataTypes } from "./interfaces/DataTypes.sol";
@@ -18,7 +18,12 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
     using FixedPointMathLib for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
+    error NotPool();
+    error NotInitiator();
+
+    // solhint-disable-next-line var-name-mixedcase
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
+    // solhint-disable-next-line var-name-mixedcase
     IPool public immutable POOL;
 
     constructor(IPoolAddressesProvider provider) {
@@ -50,8 +55,8 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         override
         returns (bool)
     {
-        require(msg.sender == address(POOL), "AaveFlashLoanProvider: not pool");
-        require(initiator == address(this), "AaveFlashLoanProvider: not initiator");
+        if (msg.sender != address(POOL)) revert NotPool();
+        if (initiator != address(this)) revert NotInitiator();
 
         _bridgeToCallback(asset, amount, fee, params);
 

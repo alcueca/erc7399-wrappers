@@ -73,7 +73,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
     }
 
     function test_receiveFlashLoan_permissions() public {
-        vm.expectRevert("BalancerWrapper: not balancer");
+        vm.expectRevert(BalancerWrapper.NotBalancer.selector);
         wrapper.receiveFlashLoan({
             assets: address(dai).toArray(),
             amounts: uint256(1e18).toArray(),
@@ -82,7 +82,7 @@ contract BalancerWrapperTest is PRBTest, StdCheats {
         });
 
         vm.prank(address(balancer));
-        vm.expectRevert("BalancerWrapper: params hash mismatch");
+        vm.expectRevert(BalancerWrapper.HashMismatch.selector);
         wrapper.receiveFlashLoan({
             assets: address(dai).toArray(),
             amounts: uint256(1e18).toArray(),

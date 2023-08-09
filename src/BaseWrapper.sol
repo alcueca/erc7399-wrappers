@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Thanks to ultrasecr.eth
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 import { IERC3156FlashBorrower } from "lib/erc3156/contracts/interfaces/IERC3156FlashBorrower.sol";
@@ -14,7 +14,7 @@ import { BaseWrapper, IERC7399 } from "../BaseWrapper.sol";
 contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
     bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
-    mapping(address => IERC3156FlashLender) public lenders;
+    mapping(address asset => IERC3156FlashLender lender) public lenders;
 
     /**
      * @param assets_ Asset contracts supported for flash lending.

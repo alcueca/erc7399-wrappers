@@ -6,6 +6,7 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { Registry } from "lib/registry/src/Registry.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
 import { UniswapV3Wrapper } from "../src/uniswapV3/UniswapV3Wrapper.sol";
@@ -37,7 +38,9 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
         wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
-        wrapper = new UniswapV3Wrapper(address(factory), weth, usdc, usdt);
+        Registry registry = new Registry(address(this));
+        registry.set("UniswapV3Wrapper", abi.encode(address(factory), weth, usdc, usdt));
+        wrapper = new UniswapV3Wrapper(registry);
         borrower = new MockBorrower(wrapper);
         deal(address(usdc), address(this), 1e6); // For fees
     }
@@ -81,7 +84,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
     }
 
     function test_uniswapV3FlashCallback_permissions() public {
-        vm.expectRevert("UniswapV3Wrapper: Unknown pool");
+        vm.expectRevert(UniswapV3Wrapper.UnknownPool.selector);
         wrapper.uniswapV3FlashCallback({
             fee0: 0,
             fee1: 0,
