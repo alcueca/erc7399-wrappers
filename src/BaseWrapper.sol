@@ -68,7 +68,7 @@ abstract contract BaseWrapper is IERC7399 {
     /// @dev Handle the common parts of bridging the callback from legacy to ERC7399. Transfer the funds to the loan
     /// receiver. Call the callback supplied by the original borrower. Approve the repayment if necessary. If there is
     /// any result, it is kept in a storage variable to be retrieved on `flash` after the legacy flash loan is finished.
-    function bridgeToCallback(address asset, uint256 amount, uint256 fee, bytes memory params) internal {
+    function _bridgeToCallback(address asset, uint256 amount, uint256 fee, bytes memory params) internal {
         Data memory data = abi.decode(params, (Data));
         _transferAssets(asset, amount, data.loanReceiver);
 

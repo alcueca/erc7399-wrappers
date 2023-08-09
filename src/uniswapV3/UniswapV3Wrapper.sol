@@ -60,29 +60,15 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     }
 
     /// @inheritdoc IERC7399
-    function maxFlashLoan(address asset) external view returns (uint256 max) {
-        // Try a stable pair first
-        IUniswapV3Pool pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
-        if (address(pool) != address(0)) {
-            max = pool.balance(asset);
-        }
-
-        uint16[3] memory fees = [0.0005e6, 0.003e6, 0.01e6];
-        address assetOther = asset == weth ? usdc : weth;
-        for (uint256 i = 0; i < 3; i++) {
-            pool = _pool(asset, assetOther, fees[i]);
-            uint256 _balance = pool.balance(asset);
-            if (address(pool) != address(0) && _balance > max) {
-                max = _balance;
-            }
-        }
+    function maxFlashLoan(address asset) external view returns (uint256) {
+        return _maxFlashLoan(asset);
     }
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
-        IUniswapV3Pool pool = cheapestPool(asset, amount);
-        if (address(pool) == address(0)) revert UnsupportedCurrency(asset);
-        return amount * uint256(pool.fee()) / 1e6;
+        uint256 max = _maxFlashLoan(asset);
+        require(max > 0, "Unsupported currency");
+        return amount >= max ? type(uint256).max : _flashFee(asset, amount);
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
@@ -111,7 +97,19 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         if (msg.sender != address(_pool(asset, other, feeTier))) revert UnknownPool();
 
         uint256 fee = fee0 > 0 ? fee0 : fee1;
-        bridgeToCallback(asset, amount, fee, data);
+        _bridgeToCallback(asset, amount, fee, data);
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        IUniswapV3Pool pool = cheapestPool(asset, amount);
+        require(address(pool) != address(0), "Unsupported currency");
+
+        address asset0 = address(pool.token0());
+        address asset1 = address(pool.token1());
+        uint256 amount0 = asset == asset0 ? amount : 0;
+        uint256 amount1 = asset == asset1 ? amount : 0;
+
+        pool.flash(address(this), amount0, amount1, abi.encode(asset0, asset1, pool.fee(), amount, data));
     }
 
     function _repayTo() internal view override returns (address) {
@@ -121,6 +119,30 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     function _pool(address asset, address other, uint24 fee) internal view returns (IUniswapV3Pool pool) {
         PoolAddress.PoolKey memory poolKey = PoolAddress.getPoolKey(address(asset), address(other), fee);
         pool = IUniswapV3Pool(factory.computeAddress(poolKey));
+    }
+
+    function _maxFlashLoan(address asset) internal view returns (uint256 max) {
+        // Try a stable pair first
+        IUniswapV3Pool pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
+        if (address(pool) != address(0)) {
+            max = pool.balance(asset);
+        }
+
+        uint16[3] memory fees = [0.0005e6, 0.003e6, 0.01e6];
+        address assetOther = asset == weth ? usdc : weth;
+        for (uint256 i = 0; i < 3; i++) {
+            pool = _pool(asset, assetOther, fees[i]);
+            uint256 _balance = pool.balance(asset);
+            if (address(pool) != address(0) && _balance > max) {
+                max = _balance;
+            }
+        }
+    }
+
+    function _flashFee(address asset, uint256 amount) internal view returns (uint256) {
+        IUniswapV3Pool pool = cheapestPool(asset, amount);
+        require(address(pool) != address(0), "Unsupported currency");
+        return amount * uint256(pool.fee()) / 1e6;
     }
 }
 

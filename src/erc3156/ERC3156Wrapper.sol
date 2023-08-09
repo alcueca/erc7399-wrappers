@@ -30,23 +30,14 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) external view returns (uint256) {
         IERC3156FlashLender lender = lenders[asset];
-        require(address(lender) != address(0), "Unsupported currency");
-        return lender.maxFlashLoan(asset);
+        return address(lender) != address(0) ? _maxFlashLoan(lender, asset) : 0;
     }
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
         IERC3156FlashLender lender = lenders[asset];
         require(address(lender) != address(0), "Unsupported currency");
-        return lender.flashFee(asset, amount);
-    }
-
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
-        IERC3156FlashLender lender = lenders[asset];
-        require(address(lender) != address(0), "Unsupported currency");
-
-        // We get funds from an ERC3156 lender to serve the ERC7399 flash loan in our ERC3156 callback
-        lender.flashLoan(this, address(asset), amount, data);
+        return amount >= _maxFlashLoan(lender, asset) ? type(uint256).max : _flashFee(lender, asset, amount);
     }
 
     /// @inheritdoc IERC3156FlashBorrower
@@ -63,8 +54,24 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         require(erc3156initiator == address(this), "External loan initiator");
         require(msg.sender == address(lenders[asset]), "Unknown lender");
 
-        bridgeToCallback(asset, amount, fee, params);
+        _bridgeToCallback(asset, amount, fee, params);
 
         return CALLBACK_SUCCESS;
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        IERC3156FlashLender lender = lenders[asset];
+        require(address(lender) != address(0), "Unsupported currency");
+
+        // We get funds from an ERC3156 lender to serve the ERC7399 flash loan in our ERC3156 callback
+        lender.flashLoan(this, address(asset), amount, data);
+    }
+
+    function _maxFlashLoan(IERC3156FlashLender lender, address asset) internal view returns (uint256) {
+        return lender.maxFlashLoan(asset);
+    }
+
+    function _flashFee(IERC3156FlashLender lender, address asset, uint256 amount) internal view returns (uint256) {
+        return lender.flashFee(asset, amount);
     }
 }
