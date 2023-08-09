@@ -57,7 +57,56 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     }
 
     /// @inheritdoc IERC7399
-    function maxFlashLoan(address asset) external view returns (uint256 max) {
+    function maxFlashLoan(address asset) external view returns (uint256) {
+        return _maxFlashLoan(asset);
+    }
+
+    /// @inheritdoc IERC7399
+    function flashFee(address asset, uint256 amount) external view returns (uint256) {
+        uint256 max = _maxFlashLoan(asset);
+        require(max > 0, "Unsupported currency");
+        return amount >= max ? type(uint256).max : _flashFee(asset, amount);
+    }
+
+    /// @inheritdoc IUniswapV3FlashCallback
+    function uniswapV3FlashCallback(
+        uint256 fee0, // Fee on Asset0
+        uint256 fee1, // Fee on Asset1
+        bytes calldata params
+    )
+        external
+        override
+    {
+        (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
+            abi.decode(params, (address, address, uint24, uint256, bytes));
+        require(msg.sender == address(_pool(asset, other, feeTier)), "UniswapV3Wrapper: Unknown pool");
+
+        uint256 fee = fee0 > 0 ? fee0 : fee1;
+        _bridgeToCallback(asset, amount, fee, data);
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        IUniswapV3Pool pool = cheapestPool(asset, amount);
+        require(address(pool) != address(0), "Unsupported currency");
+
+        address asset0 = address(pool.token0());
+        address asset1 = address(pool.token1());
+        uint256 amount0 = asset == asset0 ? amount : 0;
+        uint256 amount1 = asset == asset1 ? amount : 0;
+
+        pool.flash(address(this), amount0, amount1, abi.encode(asset0, asset1, pool.fee(), amount, data));
+    }
+
+    function _repayTo() internal view override returns (address) {
+        return msg.sender;
+    }
+
+    function _pool(address asset, address other, uint24 fee) internal view returns (IUniswapV3Pool pool) {
+        PoolAddress.PoolKey memory poolKey = PoolAddress.getPoolKey(address(asset), address(other), fee);
+        pool = IUniswapV3Pool(factory.computeAddress(poolKey));
+    }
+
+    function _maxFlashLoan(address asset) internal view returns (uint256 max) {
         // Try a stable pair first
         IUniswapV3Pool pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
         if (address(pool) != address(0)) {
@@ -75,49 +124,10 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         }
     }
 
-    /// @inheritdoc IERC7399
-    function flashFee(address asset, uint256 amount) external view returns (uint256) {
+    function _flashFee(address asset, uint256 amount) internal view returns (uint256) {
         IUniswapV3Pool pool = cheapestPool(asset, amount);
         require(address(pool) != address(0), "Unsupported currency");
         return amount * uint256(pool.fee()) / 1e6;
-    }
-
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
-        IUniswapV3Pool pool = cheapestPool(asset, amount);
-        require(address(pool) != address(0), "Unsupported currency");
-
-        address asset0 = address(pool.token0());
-        address asset1 = address(pool.token1());
-        uint256 amount0 = asset == asset0 ? amount : 0;
-        uint256 amount1 = asset == asset1 ? amount : 0;
-
-        pool.flash(address(this), amount0, amount1, abi.encode(asset0, asset1, pool.fee(), amount, data));
-    }
-
-    /// @inheritdoc IUniswapV3FlashCallback
-    function uniswapV3FlashCallback(
-        uint256 fee0, // Fee on Asset0
-        uint256 fee1, // Fee on Asset1
-        bytes calldata params
-    )
-        external
-        override
-    {
-        (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
-            abi.decode(params, (address, address, uint24, uint256, bytes));
-        require(msg.sender == address(_pool(asset, other, feeTier)), "UniswapV3Wrapper: Unknown pool");
-
-        uint256 fee = fee0 > 0 ? fee0 : fee1;
-        bridgeToCallback(asset, amount, fee, data);
-    }
-
-    function _repayTo() internal view override returns (address) {
-        return msg.sender;
-    }
-
-    function _pool(address asset, address other, uint24 fee) internal view returns (IUniswapV3Pool pool) {
-        PoolAddress.PoolKey memory poolKey = PoolAddress.getPoolKey(address(asset), address(other), fee);
-        pool = IUniswapV3Pool(factory.computeAddress(poolKey));
     }
 }
 

@@ -12,7 +12,6 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
-
 /// @dev Aave Flash Lender that uses the Aave Pool as source of liquidity.
 /// Aave doesn't allow flow splitting or pushing repayments, so this wrapper is completely vanilla.
 contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
@@ -28,28 +27,15 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
     }
 
     /// @inheritdoc IERC7399
-    function maxFlashLoan(address asset) external view returns (uint256 max) {
-        DataTypes.ReserveData memory reserve = POOL.getReserveData(asset);
-        DataTypes.ReserveConfigurationMap memory configuration = reserve.configuration;
-
-        max = !configuration.getPaused() && configuration.getActive() && configuration.getFlashLoanEnabled()
-            ? ERC20(asset).balanceOf(reserve.aTokenAddress)
-            : 0;
+    function maxFlashLoan(address asset) external view returns (uint256) {
+        return _maxFlashLoan(asset);
     }
 
     /// @inheritdoc IERC7399
-    function flashFee(address, uint256 amount) external view returns (uint256) {
-        return amount.mulWadUp(POOL.FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18);
-    }
-
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
-        POOL.flashLoanSimple({
-            receiverAddress: address(this),
-            asset: asset,
-            amount: amount,
-            params: data,
-            referralCode: 0
-        });
+    function flashFee(address asset, uint256 amount) external view returns (uint256) {
+        uint256 max = _maxFlashLoan(asset);
+        require(max > 0, "Unsupported currency");
+        return amount >= max ? type(uint256).max : _flashFee(amount);
     }
 
     /// @inheritdoc IFlashLoanSimpleReceiver
@@ -67,8 +53,31 @@ contract AaveWrapper is BaseWrapper, IFlashLoanSimpleReceiver {
         require(msg.sender == address(POOL), "AaveFlashLoanProvider: not pool");
         require(initiator == address(this), "AaveFlashLoanProvider: not initiator");
 
-        bridgeToCallback(asset, amount, fee, params);
+        _bridgeToCallback(asset, amount, fee, params);
 
         return true;
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        POOL.flashLoanSimple({
+            receiverAddress: address(this),
+            asset: asset,
+            amount: amount,
+            params: data,
+            referralCode: 0
+        });
+    }
+
+    function _maxFlashLoan(address asset) internal view returns (uint256 max) {
+        DataTypes.ReserveData memory reserve = POOL.getReserveData(asset);
+        DataTypes.ReserveConfigurationMap memory configuration = reserve.configuration;
+
+        max = !configuration.getPaused() && configuration.getActive() && configuration.getFlashLoanEnabled()
+            ? ERC20(asset).balanceOf(reserve.aTokenAddress)
+            : 0;
+    }
+
+    function _flashFee(uint256 amount) internal view returns (uint256) {
+        return amount.mulWadUp(POOL.FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18);
     }
 }

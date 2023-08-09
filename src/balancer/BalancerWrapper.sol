@@ -11,7 +11,6 @@ import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
 
 import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
 
-
 /// @dev Balancer Flash Lender that uses Balancer Pools as source of liquidity.
 /// Balancer allows pushing repayments, so we override `_repayTo`.
 contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
@@ -29,17 +28,14 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) external view returns (uint256) {
-        return ERC20(asset).balanceOf(address(balancer));
+        return _maxFlashLoan(asset);
     }
 
     /// @inheritdoc IERC7399
-    function flashFee(address, uint256 amount) external view returns (uint256) {
-        return amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
-    }
-
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
-        flashLoanDataHash = keccak256(data);
-        balancer.flashLoan(this, asset.toArray(), amount.toArray(), data);
+    function flashFee(address asset, uint256 amount) external view returns (uint256) {
+        uint256 max = _maxFlashLoan(asset);
+        require(max > 0, "Unsupported currency");
+        return amount >= max ? type(uint256).max : _flashFee(amount);
     }
 
     /// @inheritdoc IFlashLoanRecipient
@@ -56,10 +52,23 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
         require(keccak256(params) == flashLoanDataHash, "BalancerWrapper: params hash mismatch");
         delete flashLoanDataHash;
 
-        bridgeToCallback(assets[0], amounts[0], fees[0], params);
+        _bridgeToCallback(assets[0], amounts[0], fees[0], params);
+    }
+
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+        flashLoanDataHash = keccak256(data);
+        balancer.flashLoan(this, asset.toArray(), amount.toArray(), data);
     }
 
     function _repayTo() internal view override returns (address) {
         return address(balancer);
+    }
+
+    function _flashFee(uint256 amount) internal view returns (uint256) {
+        return amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+    }
+
+    function _maxFlashLoan(address asset) internal view returns (uint256) {
+        return ERC20(asset).balanceOf(address(balancer));
     }
 }
