@@ -11,20 +11,19 @@ import { AaveWrapper, IPoolAddressesProvider } from "../src/aave/AaveWrapper.sol
 import { BalancerWrapper, IFlashLoaner } from "../src/balancer/BalancerWrapper.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
-contract ArbitrumDeploy is BaseScript {
+contract OptimismDeploy is BaseScript {
     bytes32 public constant SALT = keccak256("ERC7399-wrappers");
 
     address internal factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
-    address internal usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address internal usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-    address internal weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address internal wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address internal usdc = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
+    address internal usdt = 0x94b008aA00579c1307B0EF2c499aD98a8ce58e58;
+    address internal weth = 0x4200000000000000000000000000000000000006;
 
     IFlashLoaner internal balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
     IPoolAddressesProvider internal provider = IPoolAddressesProvider(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
 
-    function run() public broadcast("https://arbitrum.llamarpc.com") {
+    function run() public broadcast("https://optimism.llamarpc.com") {
         console2.log("Deploying as %s", msg.sender);
 
         Registry registry = new Registry{salt: SALT}(msg.sender);
