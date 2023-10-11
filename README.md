@@ -7,7 +7,7 @@ This repository contains contracts that work as [ERC7399](https://github.com/eth
 ```mermaid
 sequenceDiagram
   title ERC3156Wrapper
-    Borrower->>Wrapper: ERC7399.flash(to,token,amt,data,callBack)
+    Borrower->>Wrapper: ERC7399.flash(to,token,amt,data,callback)
     Wrapper->>Lender: lender specific flashLoan call
     Lender-->>Wrapper: transfer loan amount
     Lender->>Wrapper: lender specific callback()
