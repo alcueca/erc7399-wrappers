@@ -2,6 +2,26 @@
 
 This repository contains contracts that work as [ERC7399](https://github.com/ethereum/EIPs/blob/d072207e24e3cc12b6315909e6a65275a38e1984/EIPS/eip-7399.md) entry points for popular flash lenders.
 
+## How Do These Wrappers Work
+
+```mermaid
+sequenceDiagram
+  title ERC3156Wrapper
+    Borrower->>Wrapper: ERC7399.flash(to,token,amt,data,callBack)
+    Wrapper->>Lender: lender specific flashLoan call
+    Lender-->>Wrapper: transfer loan amount
+    Lender->>Wrapper: lender specific callback()
+    Wrapper -->>Wrapper: bridgeToCallback()
+    Wrapper-->>Borrower: transfer loan amount
+    Wrapper->>Borrower: callback()
+    Borrower -> Borrower: Borrower does stuff
+    Borrower -->> Wrapper: transfer loan amount + fee †
+    Borrower ->> Wrapper: callback return
+    Wrapper --> Wrapper: approves token repayment to lender †
+    Wrapper -->> Lender: lender calls transferFrom(wrapper, amount + fee) †
+```
+† For the BalancerWrapper and Uniswap v3 the borrower transfers the repayment to the lender and the wrapper skips the repayment approval.
+
 ## Addresses
 
 Contracts are deployed at the same address for all supported networks.
