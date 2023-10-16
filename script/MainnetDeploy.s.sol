@@ -27,18 +27,34 @@ contract MainnetDeploy is BaseScript {
     function run() public broadcast("https://eth.llamarpc.com") {
         console2.log("Deploying as %s", msg.sender);
 
-        Registry registry = new Registry{salt: SALT}(msg.sender);
+        Registry registry = Registry(getAddress(type(Registry).creationCode, SALT));
+        if (!isContract(address(registry))){
+            registry = new Registry{salt: SALT}(msg.sender);
+            console2.log("Registry deployed at: %s", address(registry));
+        } else {
+            console2.log("Registry already deployed");
+        }
 
-        console2.log("Registry deployed at: %s", address(registry));
+        if (!isContract(getAddress(abi.encodePacked(type(UniswapV3Wrapper).creationCode, abi.encode(registry)), SALT))){
+            registry.set("UniswapV3Wrapper", abi.encode(factory, weth, usdc, usdt));
+            UniswapV3Wrapper uniswapV3Wrapper = new UniswapV3Wrapper{salt: SALT}(registry);
+            console2.log("UniswapV3Wrapper deployed at: %s", address(uniswapV3Wrapper));
+        } else {
+            console2.log("UniswapV3Wrapper already deployed");
+        }
 
-        registry.set("UniswapV3Wrapper", abi.encode(factory, weth, usdc, usdt));
-        UniswapV3Wrapper uniswapV3Wrapper = new UniswapV3Wrapper{salt: SALT}(registry);
-        console2.log("UniswapV3Wrapper deployed at: %s", address(uniswapV3Wrapper));
+        if (!isContract(getAddress(abi.encodePacked(type(BalancerWrapper).creationCode, abi.encode(balancer)), SALT))){
+            BalancerWrapper balancerWrapper = new BalancerWrapper{salt: SALT}(balancer);
+            console2.log("BalancerWrapper deployed at: %s", address(balancerWrapper));
+        } else {
+            console2.log("BalancerWrapper already deployed");
+        }
 
-        BalancerWrapper balancerWrapper = new BalancerWrapper{salt: SALT}(balancer);
-        console2.log("BalancerWrapper deployed at: %s", address(balancerWrapper));
-
-        AaveWrapper aaveWrapper = new AaveWrapper{salt: SALT}(provider);
-        console2.log("AaveWrapper deployed at: %s", address(aaveWrapper));
+        if (!isContract(getAddress(abi.encodePacked(type(AaveWrapper).creationCode, abi.encode(provider)), SALT))){
+            AaveWrapper aaveWrapper = new AaveWrapper{salt: SALT}(provider);
+            console2.log("AaveWrapper deployed at: %s", address(aaveWrapper));
+        } else {
+            console2.log("AaveWrapper already deployed");
+        }
     }
 }
