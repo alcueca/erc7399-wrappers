@@ -56,7 +56,7 @@ abstract contract BaseWrapper is IERC7399 {
         return _flash(asset, amount, data);
     }
 
-    /// @dev Alternative entry point for the ERC7399 flash loan, without function pointers. Packs data to convert the 
+    /// @dev Alternative entry point for the ERC7399 flash loan, without function pointers. Packs data to convert the
     /// legacy flash loan into an ERC7399 flash loan. Then it calls the legacy flash loan. Once the flash loan is done,
     /// checks if there is any return data and returns it.
     function flash(
@@ -80,7 +80,7 @@ abstract contract BaseWrapper is IERC7399 {
         return _flash(asset, amount, data);
     }
 
-    function _flash(address asset, uint256 amount, Data memory data) internal virtual returns (bytes memory result){
+    function _flash(address asset, uint256 amount, Data memory data) internal virtual returns (bytes memory result) {
         _flashLoan(asset, amount, abi.encode(data));
 
         result = _callbackResult;

@@ -136,7 +136,9 @@ contract MockBorrower {
     }
 
     function flashBorrowNoPointers(address asset, uint256 amount) public returns (bytes memory) {
-        return BaseWrapper(address(lender)).flash(address(loanReceiver), asset, amount, "", address(this), this.onFlashLoan.selector);
+        return BaseWrapper(address(lender)).flash(
+            address(loanReceiver), asset, amount, "", address(this), this.onFlashLoan.selector
+        );
     }
 
     function flashBorrowAndSteal(address asset, uint256 amount) public returns (bytes memory) {
