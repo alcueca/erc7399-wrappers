@@ -9,7 +9,7 @@ import { BalancerWrapper, IFlashLoaner } from "../src/balancer/BalancerWrapper.s
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract BalancerDeploy is Script {
-    bytes32 public constant SALT = keccak256("alcueca-1");
+    bytes32 public constant SALT = keccak256("alcueca-2");
     IFlashLoaner internal balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
 
