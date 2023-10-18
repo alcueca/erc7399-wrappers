@@ -5,6 +5,7 @@ pragma solidity ^0.8.19;
 import "erc7399/IERC7399.sol";
 
 import { TransferHelper, ERC20 } from "./utils/TransferHelper.sol";
+import { FunctionCodec } from "./utils/FunctionCodec.sol";
 
 /// @dev All ERC7399 flash loan wrappers have the same general structure.
 /// - The ERC7399 `flash` function is the entry point for the flash loan.
@@ -52,6 +53,34 @@ abstract contract BaseWrapper is IERC7399 {
             initiatorData: initiatorData
         });
 
+        return _flash(asset, amount, data);
+    }
+
+    /// @dev Alternative entry point for the ERC7399 flash loan, without function pointers. Packs data to convert the
+    /// legacy flash loan into an ERC7399 flash loan. Then it calls the legacy flash loan. Once the flash loan is done,
+    /// checks if there is any return data and returns it.
+    function flash(
+        address loanReceiver,
+        address asset,
+        uint256 amount,
+        bytes calldata initiatorData,
+        address callbackTarget,
+        bytes4 callbackSelector
+    )
+        external
+        returns (bytes memory result)
+    {
+        Data memory data = Data({
+            loanReceiver: loanReceiver,
+            initiator: msg.sender,
+            callback: FunctionCodec.decodeFunction(callbackTarget, callbackSelector),
+            initiatorData: initiatorData
+        });
+
+        return _flash(asset, amount, data);
+    }
+
+    function _flash(address asset, uint256 amount, Data memory data) internal virtual returns (bytes memory result) {
         _flashLoan(asset, amount, abi.encode(data));
 
         result = _callbackResult;
@@ -63,7 +92,7 @@ abstract contract BaseWrapper is IERC7399 {
     }
 
     /// @dev Call the legacy flashloan function in the child contract. This is where we borrow from Aave, Uniswap, etc.
-    function _flashLoan(address asset, uint256 amount, bytes memory params) internal virtual;
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal virtual;
 
     /// @dev Handle the common parts of bridging the callback from legacy to ERC7399. Transfer the funds to the loan
     /// receiver. Call the callback supplied by the original borrower. Approve the repayment if necessary. If there is

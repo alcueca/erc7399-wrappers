@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
+import "src/BaseWrapper.sol";
 
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
@@ -132,6 +133,12 @@ contract MockBorrower {
 
     function flashBorrow(address asset, uint256 amount) public returns (bytes memory) {
         return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoan);
+    }
+
+    function flashBorrowNoPointers(address asset, uint256 amount) public returns (bytes memory) {
+        return BaseWrapper(address(lender)).flash(
+            address(loanReceiver), asset, amount, "", address(this), this.onFlashLoan.selector
+        );
     }
 
     function flashBorrowAndSteal(address asset, uint256 amount) public returns (bytes memory) {

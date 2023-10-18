@@ -50,6 +50,21 @@ contract BaseWrapperTest is PRBTest, StdCheats {
         assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
     }
 
+    function test_flashLoanNoPointers() external {
+        console2.log("test_flashLoan");
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(dai, loan);
+        ERC20(dai).transfer(address(borrower), fee);
+        bytes memory result = borrower.flashBorrow(dai, loan);
+
+        // Test the return values passed through the wrapper
+        (bytes32 callbackReturn) = abi.decode(result, (bytes32));
+        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
+
+        // Test the wrapper state (return bytes should be cleaned up)
+        assertEq(vm.load(address(wrapper), bytes32(uint256(0))), "");
+    }
+
     function test_flashLoan_void() external {
         console2.log("test_flashLoan_void");
         uint256 loan = 1e18;
