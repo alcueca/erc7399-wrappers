@@ -18,7 +18,7 @@ contract UniswapV3Deploy is Script {
         OPTIMISM
     }
     bytes32 public constant SALT = keccak256("alcueca-1");
-    Network public constant NETWORK = Network.OPTIMISM;
+    Network public constant NETWORK = Network.MAINNET;
 
     mapping(Network network => mapping(bytes32 token => address)) public tokens;
 

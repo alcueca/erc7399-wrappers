@@ -16,7 +16,7 @@ contract AaveDeploy is Script {
         OPTIMISM
     }
     bytes32 public constant SALT = keccak256("alcueca-1");
-    Network public constant NETWORK = Network.POLYGON;
+    Network public constant NETWORK = Network.MAINNET;
 
     mapping(Network network => IPoolAddressesProvider) public providers;
 
