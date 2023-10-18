@@ -12,7 +12,6 @@ contract BalancerDeploy is Script {
     bytes32 public constant SALT = keccak256("alcueca-2");
     IFlashLoaner internal balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
-
     function run() public {
         console2.log("Deploying as %s", msg.sender);
 

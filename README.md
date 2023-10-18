@@ -30,8 +30,8 @@ repayment approval.
 
 Contracts are deployed at the same address for all supported networks.
 
-| Contract                                               | Lender      | Address                                    | Networks               |
-| ------------------------------------------------------ | ----------- | ------------------------------------------ | ---------------------- |
+| Contract                                               | Lender      | Address                                    | Networks                                 |
+| ------------------------------------------------------ | ----------- | ------------------------------------------ | ---------------------------------------- |
 | [AaveWrapper](src/aave/AaveWrapper.sol)                | Aave v3     | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Mainnet, Arbitrum One, Optimism, Polygon |
 | [BalancerWrapper](src/balancer/BalancerWrapper.sol)    | Balancer v2 | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Mainnet, Arbitrum One, Optimism, Polygon |
 | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol) | Uniswap v3  | 0x716cef3F74d4C27B6EE206E51dFcf1D61e66dA7f | Mainnet, Arbitrum One, Optimism, Polygon |

@@ -17,6 +17,7 @@ contract UniswapV3Deploy is Script {
         POLYGON,
         OPTIMISM
     }
+
     bytes32 public constant SALT = keccak256("alcueca-2");
     Network public constant NETWORK = Network.MAINNET;
 
@@ -25,7 +26,7 @@ contract UniswapV3Deploy is Script {
     Registry internal registry = Registry(0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c);
     address internal factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
 
-    constructor () {
+    constructor() {
         tokens[Network.MAINNET]["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         tokens[Network.MAINNET]["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         tokens[Network.MAINNET]["WETH"] = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -44,12 +45,14 @@ contract UniswapV3Deploy is Script {
         console2.log("Deploying as %s", msg.sender);
 
         vm.startBroadcast();
-        bytes memory params = abi.encode(factory, tokens[NETWORK]["WETH"], tokens[NETWORK]["USDC"], tokens[NETWORK]["USDT"]);
+        bytes memory params =
+            abi.encode(factory, tokens[NETWORK]["WETH"], tokens[NETWORK]["USDC"], tokens[NETWORK]["USDT"]);
         if (keccak256(registry.get("UniswapV3Wrapper")) != keccak256(params)) {
             registry.set("UniswapV3Wrapper", params);
         }
 
-        (address _factory, address _weth, address _usdc, address _usdt) = abi.decode(registry.get("UniswapV3Wrapper"), (address, address, address, address));
+        (address _factory, address _weth, address _usdc, address _usdt) =
+            abi.decode(registry.get("UniswapV3Wrapper"), (address, address, address, address));
         console2.log("Factory: %s", _factory);
         console2.log("WETH: %s", _weth);
         console2.log("USDC: %s", _usdc);
