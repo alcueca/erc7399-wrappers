@@ -28,11 +28,11 @@ Contracts are deployed at the same address for all supported networks.
 
 | Contract | Lender | Address | Networks |
 | ---- | ---- | ---- | ---- |
-|[AaveWrapper](src/aave/AaveWrapper.sol)|Aave v3|0x02C7632b84B3447845531541d0285D67E656e50c|Arbitrum One, Optimism|
-|[BalancerWrapper](src/balancer/BalancerWrapper.sol)|Balancer v2|0x3d4DF8596e5750A4F721c8764d585dcc8623d009|Arbitrum One, Optimism|
-|[UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)|Uniswap v3|0x23de8e0bB91A105bEFf9d40d8d75C1A9fE40f523|Arbitrum One, Optimism|
+|[AaveWrapper](src/aave/AaveWrapper.sol)|Aave v3|0x61dD1523916471dc01c947d91EF91dfb8E9f7C08|Arbitrum One, Optimism, Polygon|
+|[BalancerWrapper](src/balancer/BalancerWrapper.sol)|Balancer v2|0x8630CE1b6AC9a99C6A0fC776b559582C8f1b9E93|Arbitrum One, Optimism, Polygon|
+|[UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)|Uniswap v3|0x24030f0B35b602778a4CD4D7b8Da3088c4bAC461|Arbitrum One, Optimism, Polygon|
 
-When a contract requires constructor parameters which vary per network, these are supplied by the [Registry](https://github.com/alcueca/registry) deployed at 0x05caE14d1A348B29d2b169697b4BE51009a9C4dF in each supported network.
+When a contract requires constructor parameters which vary per network, these are supplied by the [Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported network.
 
 ## Flash Loans
 
