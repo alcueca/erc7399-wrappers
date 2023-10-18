@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
 library FunctionCodec {
     function encodeParams(address contractAddr, bytes4 selector) internal pure returns (bytes24) {
@@ -30,6 +30,7 @@ library FunctionCodec {
         returns (function(address, address, address, uint256, uint256, bytes memory) external returns (bytes memory) f)
     {
         uint32 s = uint32(selector);
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             f.address := contractAddr
             f.selector := s
