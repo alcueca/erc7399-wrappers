@@ -22,15 +22,15 @@
   verbosity = 4
 
 [etherscan]
-  arbitrum_one = { key = "${API_KEY_ARBISCAN}" }
-  avalanche = { key = "${API_KEY_SNOWTRACE}" }
-  bnb_smart_chain = { key = "${API_KEY_BSCSCAN}" }
-  gnosis_chain = { key = "${API_KEY_GNOSISSCAN}" }
-  goerli = { key = "${API_KEY_ETHERSCAN}" }
-  mainnet = { key = "${API_KEY_ETHERSCAN}" }
-  optimism = { key = "${API_KEY_OPTIMISTIC_ETHERSCAN}" }
-  polygon = { key = "${API_KEY_POLYGONSCAN}" }
-  sepolia = { key = "${API_KEY_ETHERSCAN}" }
+  arbitrum_one = { key = "${API_KEY_ARBISCAN}", chain = 42161 }
+  avalanche = { key = "${API_KEY_SNOWTRACE}", chain = 43114 }
+  bnb_smart_chain = { key = "${ API_KEY_BSCSCAN}", chain = 56 }
+  gnosis_chain = { key = "${API_KEY_GNOSISSCAN}", chain = 100 }
+  goerli = { key = "${API_KEY_ETHERSCAN}", chain = 5 }
+  mainnet = { key = "${API_KEY_ETHERSCAN}", chain = 1 }
+  optimism = { key = "${API_KEY_OPTIMISTIC_ETHERSCAN}", chain = 10 }
+  polygon = { key = "${API_KEY_POLYGONSCAN}", chain = 137 }
+  sepolia = { key = "${API_KEY_ETHERSCAN}", chain = 58008 }
 
 [fmt]
   bracket_spacing = true
