@@ -9,15 +9,18 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
 import { AaveWrapper } from "../src/aave/AaveWrapper.sol";
-import { IPoolAddressesProvider } from "../src/aave/interfaces/IPoolAddressesProvider.sol";
+import { Arrays } from "src/utils/Arrays.sol";
+import { IPoolAddressesProviderV3 } from "../src/aave/interfaces/IPoolAddressesProviderV3.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
+    using Arrays for *;
+
     AaveWrapper internal wrapper;
     MockBorrower internal borrower;
     address internal dai;
-    IPoolAddressesProvider internal provider;
+    IPoolAddressesProviderV3 internal provider;
 
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
@@ -28,10 +31,10 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         }
 
         vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 98_674_994 });
-        provider = IPoolAddressesProvider(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
+        provider = IPoolAddressesProviderV3(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
         dai = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
-        wrapper = new AaveWrapper(provider);
+        wrapper = new AaveWrapper(provider.getPool(), address(provider), provider.getPoolDataProvider(), false);
         borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }
@@ -69,10 +72,22 @@ contract AaveWrapperTest is PRBTest, StdCheats {
 
     function test_executeOperation_permissions() public {
         vm.expectRevert(AaveWrapper.NotPool.selector);
-        wrapper.executeOperation({ asset: address(dai), amount: 1e18, fee: 0, initiator: address(wrapper), params: "" });
+        wrapper.executeOperation({
+            assets: address(dai).toArray(),
+            amounts: 1e18.toArray(),
+            fees: 0.toArray(),
+            initiator: address(wrapper),
+            params: ""
+        });
 
         vm.prank(provider.getPool());
         vm.expectRevert(AaveWrapper.NotInitiator.selector);
-        wrapper.executeOperation({ asset: address(dai), amount: 1e18, fee: 0, initiator: address(0x666), params: "" });
+        wrapper.executeOperation({
+            assets: address(dai).toArray(),
+            amounts: 1e18.toArray(),
+            fees: 0.toArray(),
+            initiator: address(0x666),
+            params: ""
+        });
     }
 }

@@ -7,7 +7,8 @@ import { console2 } from "forge-std/console2.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 
 import { UniswapV3Wrapper } from "../src/uniswapV3/UniswapV3Wrapper.sol";
-import { AaveWrapper, IPoolAddressesProvider } from "../src/aave/AaveWrapper.sol";
+import { AaveWrapper } from "../src/aave/AaveWrapper.sol";
+import { IPoolAddressesProviderV3 } from "../src/aave/interfaces/IPoolAddressesProviderV3.sol";
 import { BalancerWrapper, IFlashLoaner } from "../src/balancer/BalancerWrapper.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
@@ -22,7 +23,7 @@ contract MainnetDeploy is BaseScript {
 
     IFlashLoaner internal balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
-    IPoolAddressesProvider internal provider = IPoolAddressesProvider(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e);
+    IPoolAddressesProviderV3 internal provider = IPoolAddressesProviderV3(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e);
 
     function run() public broadcast("https://eth.llamarpc.com") {
         console2.log("Deploying as %s", msg.sender);
@@ -38,7 +39,8 @@ contract MainnetDeploy is BaseScript {
         BalancerWrapper balancerWrapper = new BalancerWrapper{salt: SALT}(balancer);
         console2.log("BalancerWrapper deployed at: %s", address(balancerWrapper));
 
-        AaveWrapper aaveWrapper = new AaveWrapper{salt: SALT}(provider);
+        AaveWrapper aaveWrapper =
+            new AaveWrapper{salt: SALT}(provider.getPool(), address(provider), provider.getPoolDataProvider(), false);
         console2.log("AaveWrapper deployed at: %s", address(aaveWrapper));
     }
 }
