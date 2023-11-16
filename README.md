@@ -32,12 +32,12 @@ Contracts are deployed at the same address for all supported networks.
 
 | Contract                                               | Lender      | Address                                    | Networks               |
 | ------------------------------------------------------ | ----------- | ------------------------------------------ | ---------------------- |
-| [AaveWrapper](src/aave/AaveWrapper.sol)                | Aave v3     | 0x02C7632b84B3447845531541d0285D67E656e50c | Arbitrum One, Optimism |
-| [BalancerWrapper](src/balancer/BalancerWrapper.sol)    | Balancer v2 | 0x3d4DF8596e5750A4F721c8764d585dcc8623d009 | Arbitrum One, Optimism |
-| [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol) | Uniswap v3  | 0x23de8e0bB91A105bEFf9d40d8d75C1A9fE40f523 | Arbitrum One, Optimism |
+| [AaveWrapper](src/aave/AaveWrapper.sol)                | Aave v3     | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Mainnet, Arbitrum One, Optimism, Polygon |
+| [BalancerWrapper](src/balancer/BalancerWrapper.sol)    | Balancer v2 | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Mainnet, Arbitrum One, Optimism, Polygon |
+| [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol) | Uniswap v3  | 0x716cef3F74d4C27B6EE206E51dFcf1D61e66dA7f | Mainnet, Arbitrum One, Optimism, Polygon |
 
 When a contract requires constructor parameters which vary per network, these are supplied by the
-[Registry](https://github.com/alcueca/registry) deployed at 0x05caE14d1A348B29d2b169697b4BE51009a9C4dF in each supported
+[Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported
 network.
 
 ## Flash Loans
