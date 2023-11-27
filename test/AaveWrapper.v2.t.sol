@@ -5,6 +5,8 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
+import { Registry } from "lib/registry/src/Registry.sol";
+
 import { ERC20 } from "solmate/tokens/ERC20.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
@@ -35,8 +37,18 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         provider = IPoolAddressesProviderV2(0xd05e3E715d945B59290df0ae8eF85c1BdB684744);
         dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
 
-        wrapper =
-        new AaveWrapper(provider.getLendingPool(), address(provider), IPoolDataProvider(0x7551b5D2763519d4e37e8B81929D336De671d46d), true);
+        Registry registry = new Registry(address(this));
+        registry.set(
+            "AaveV2Wrapper",
+            abi.encode(
+                provider.getLendingPool(),
+                address(provider),
+                IPoolDataProvider(0x7551b5D2763519d4e37e8B81929D336De671d46d),
+                true
+            )
+        );
+
+        wrapper = new AaveWrapper(registry, "AaveV2");
         borrower = new MockBorrower(wrapper);
         deal(address(dai), address(this), 1e18); // For fees
     }

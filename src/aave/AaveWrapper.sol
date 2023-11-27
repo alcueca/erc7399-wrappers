@@ -2,6 +2,8 @@
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.19;
 
+import { Registry } from "lib/registry/src/Registry.sol";
+
 import { IPool } from "./interfaces/IPool.sol";
 import { IPoolDataProvider } from "./interfaces/IPoolDataProvider.sol";
 import { IFlashLoanReceiverV2V3 } from "./interfaces/IFlashLoanReceiverV2V3.sol";
@@ -30,12 +32,12 @@ contract AaveWrapper is BaseWrapper, IFlashLoanReceiverV2V3 {
     IPoolDataProvider public immutable dataProvider;
     bool public immutable isV2;
 
-    constructor(address _pool, address _addressesProvider, IPoolDataProvider _dataProvider, bool _isV2) {
-        POOL = _pool;
-        ADDRESSES_PROVIDER = _addressesProvider;
-        LENDING_POOL = address(_pool);
-        dataProvider = _dataProvider;
-        isV2 = _isV2;
+    constructor(Registry reg, string memory name) {
+        address pool;
+        (pool, ADDRESSES_PROVIDER, dataProvider, isV2) =
+            abi.decode(reg.get(string.concat(name, "Wrapper")), (address, address, IPoolDataProvider, bool));
+        POOL = pool;
+        LENDING_POOL = pool;
     }
 
     /// @inheritdoc IERC7399
