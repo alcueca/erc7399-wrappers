@@ -15,7 +15,7 @@ contract RegistryDeploy is Script {
         console2.log("Deploying as %s", msg.sender);
 
         vm.startBroadcast();
-        new Registry{salt: SALT}(msg.sender);
+        new Registry{ salt: SALT }(msg.sender);
         vm.stopBroadcast();
     }
 }

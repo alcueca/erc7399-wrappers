@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 
 library Arrays {
     function toArray(uint256 n) internal pure returns (uint256[] memory arr) {
-        arr = new uint[](1);
+        arr = new uint256[](1);
         arr[0] = n;
     }
 

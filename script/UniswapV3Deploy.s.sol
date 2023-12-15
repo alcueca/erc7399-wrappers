@@ -57,7 +57,7 @@ contract UniswapV3Deploy is Script {
         console2.log("WETH: %s", _weth);
         console2.log("USDC: %s", _usdc);
         console2.log("USDT: %s", _usdt);
-        UniswapV3Wrapper uniswapV3Wrapper = new UniswapV3Wrapper{salt: SALT}(registry);
+        UniswapV3Wrapper uniswapV3Wrapper = new UniswapV3Wrapper{ salt: SALT }(registry);
         console2.log("UniswapV3Wrapper deployed at: %s", address(uniswapV3Wrapper));
 
         vm.stopBroadcast();
