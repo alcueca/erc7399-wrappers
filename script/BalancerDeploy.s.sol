@@ -18,7 +18,7 @@ contract BalancerDeploy is Script {
         vm.startBroadcast();
 
         console2.log("Balancer: %s", address(balancer));
-        BalancerWrapper balancerWrapper = new BalancerWrapper{salt: SALT}(balancer);
+        BalancerWrapper balancerWrapper = new BalancerWrapper{ salt: SALT }(balancer);
         console2.log("BalancerWrapper deployed at: %s", address(balancerWrapper));
 
         vm.stopBroadcast();

@@ -102,7 +102,7 @@ contract AaveDeploy is Script {
         }
 
         console2.log("%sAave provider", params.name);
-        AaveWrapper aaveWrapper = new AaveWrapper{salt: SALT}(registry, params.name);
+        AaveWrapper aaveWrapper = new AaveWrapper{ salt: SALT }(registry, params.name);
         console2.log("%sWrapper deployed at: %s", params.name, address(aaveWrapper));
 
         vm.stopBroadcast();
