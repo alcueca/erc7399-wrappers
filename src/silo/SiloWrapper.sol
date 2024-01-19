@@ -46,7 +46,8 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
     function maxFlashLoan(address asset) public view returns (uint256) {
         // Optimistically assume that balancer has enough liquidity of the intermediate token
         // Each Silo fork has a different oracle, so it'd be hard to get the exact amount that we can borrow
-        return lens.liquidity(repository.getSilo(ERC20(asset)), ERC20(asset));
+        ISilo silo = repository.getSilo(ERC20(asset));
+        return address(silo) == address(0) ? 0 : lens.liquidity(silo, ERC20(asset));
     }
 
     /// @inheritdoc IERC7399

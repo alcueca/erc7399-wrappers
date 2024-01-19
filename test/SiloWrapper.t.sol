@@ -40,7 +40,7 @@ contract SiloWrapperTest is PRBTest, StdCheats {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 171_742_487 });
+        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 172_023_656 });
         balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
         gmx = 0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a;
 
@@ -63,7 +63,23 @@ contract SiloWrapperTest is PRBTest, StdCheats {
 
     function test_maxFlashLoan() external {
         console2.log("test_maxFlashLoan");
-        assertEq(wrapper.maxFlashLoan(gmx), 10_565.473394968797394368e18, "Max flash loan not right");
+        assertEq(wrapper.maxFlashLoan(gmx), 12_620.330550150872407615e18, "Max flash loan not right");
+    }
+
+    function test_maxFlashLoan_unsupportedAsset() external {
+        console2.log("test_maxFlashLoan");
+        assertEq(wrapper.maxFlashLoan(address(1)), 0, "Max flash loan not right");
+    }
+
+    function test_flashFee_unsupportedAsset() external {
+        console2.log("test_flashFee");
+        vm.expectRevert("Unsupported currency");
+        wrapper.flashFee(address(1), 1e18);
+    }
+
+    function test_flashFee_insufficientLiquidity() external {
+        console2.log("test_flashFee");
+        assertEq(wrapper.flashFee(gmx, 20_000e18), type(uint256).max, "Fee not zero");
     }
 
     function test_flashLoan() external {
