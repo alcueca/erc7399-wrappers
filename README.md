@@ -37,6 +37,7 @@ Contracts are deployed at the same address for all supported networks.
 | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol) | Uniswap v3  | 0x716cef3F74d4C27B6EE206E51dFcf1D61e66dA7f | Mainnet, Arbitrum One, Optimism, Polygon |
 | [CompoundWrapper](src/compound/CompoundWrapper.sol)    | Moonwell    | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base                                     |
 | [SiloWrapper](src/silo/SiloWrapper.sol)                | Silo        | 0xecd3EA7f4ecb25bc6a862452f9cCda3E60534c8C | Arbitrum                                 |
+| [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)    | Dolomite    | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum                                 |
 
 When a contract requires constructor parameters which vary per network, these are supplied by the
 [Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported
