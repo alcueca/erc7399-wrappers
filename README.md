@@ -30,12 +30,13 @@ repayment approval.
 
 Contracts are deployed at the same address for all supported networks.
 
-| Contract                                               | Lender      | Address                                    | Networks               |
-| ------------------------------------------------------ | ----------- | ------------------------------------------ | ---------------------- |
+| Contract                                               | Lender      | Address                                    | Networks                                 |
+| ------------------------------------------------------ | ----------- | ------------------------------------------ | ---------------------------------------- |
 | [AaveWrapper](src/aave/AaveWrapper.sol)                | Aave v3     | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Mainnet, Arbitrum One, Optimism, Polygon |
 | [BalancerWrapper](src/balancer/BalancerWrapper.sol)    | Balancer v2 | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Mainnet, Arbitrum One, Optimism, Polygon |
 | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol) | Uniswap v3  | 0x716cef3F74d4C27B6EE206E51dFcf1D61e66dA7f | Mainnet, Arbitrum One, Optimism, Polygon |
-| [CompoundWrapper](src/compound/CompoundWrapper.sol)    | Moonwell    | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base |
+| [CompoundWrapper](src/compound/CompoundWrapper.sol)    | Moonwell    | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base                                     |
+| [SiloWrapper](src/silo/SiloWrapper.sol)                | Silo        | 0xecd3EA7f4ecb25bc6a862452f9cCda3E60534c8C | Arbitrum                                 |
 
 When a contract requires constructor parameters which vary per network, these are supplied by the
 [Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported
