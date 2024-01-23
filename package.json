@@ -25,7 +25,6 @@
     "lint": "pnpm lint:sol && pnpm prettier:check",
     "lint:sol": "forge fmt --check && pnpm solhint src/**/*.sol",
     "prettier:check": "prettier --check **/*.{json,md,yml} --ignore-path=.prettierignore",
-    "prettier:write": "prettier --write **/*.{json,md,yml} --ignore-path=.prettierignore",
-    "deploy:arbitrum": "forge script -f $ARBITRUM_URL --legacy --with-gas-price 100000000  --private-key $(cat .secret) --broadcast script/ArbitrumDeploy.s.sol"
+    "prettier:write": "prettier --write **/*.{json,md,yml} --ignore-path=.prettierignore"
   }
 }
