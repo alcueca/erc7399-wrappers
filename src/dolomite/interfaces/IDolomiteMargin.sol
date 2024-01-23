@@ -3,27 +3,30 @@ pragma solidity ^0.8.4;
 
 interface IDolomiteMargin {
     enum ActionType {
-        Deposit,   // supply tokens
-        Withdraw,  // borrow tokens
-        Transfer,  // transfer balance between accounts
-        Buy,       // buy an amount of some token (externally)
-        Sell,      // sell an amount of some token (externally)
-        Trade,     // trade tokens against another account
+        Deposit, // supply tokens
+        Withdraw, // borrow tokens
+        Transfer, // transfer balance between accounts
+        Buy, // buy an amount of some token (externally)
+        Sell, // sell an amount of some token (externally)
+        Trade, // trade tokens against another account
         Liquidate, // liquidate an undercollateralized or expiring account
-        Vaporize,  // use excess tokens to zero-out a completely negative account
-        Call       // send arbitrary data to an address
+        Vaporize, // use excess tokens to zero-out a completely negative account
+        Call // send arbitrary data to an address
+
     }
 
     enum AssetDenomination {
         Wei, // the amount is denominated in wei
-        Par  // the amount is denominated in par
+        Par // the amount is denominated in par
+
     }
 
     enum AssetReference {
         Delta, // the amount is given as a delta from the current value
         Target // the amount is given as an exact number to end up at
+
     }
-    
+
     type Status is uint8;
 
     struct ActionArgs {

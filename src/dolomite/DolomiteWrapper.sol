@@ -90,5 +90,6 @@ contract DolomiteWrapper is BaseWrapper, ICallee {
     }
 
     // Funds are sent directly to the loanReceiver
+    // solhint-disable-next-line no-empty-blocks
     function _transferAssets(address, uint256, address) internal override { }
 }

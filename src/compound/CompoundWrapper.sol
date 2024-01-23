@@ -170,6 +170,7 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
         }
     }
 
+    // solhint-disable-next-line no-empty-blocks
     receive() external payable { }
 
     function _checkInteraction(Error _error) internal pure {
@@ -183,13 +184,15 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
 
     function _isListed(ICToken cToken) internal returns (bool) {
         (bool success, bytes memory data) =
-            address(comptroller).call(abi.encodeWithSelector(IComptroller.markets.selector, cToken));
+        // solhint-disable-next-line avoid-low-level-calls
+         address(comptroller).call(abi.encodeWithSelector(IComptroller.markets.selector, cToken));
 
         return success && data.length >= 32 && isFirst32BytesTrue(data);
     }
 
     function isFirst32BytesTrue(bytes memory data) public pure returns (bool) {
         uint256 value;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             value := mload(add(data, 32))
         }
