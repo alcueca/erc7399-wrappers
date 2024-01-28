@@ -3,17 +3,20 @@ pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
 import "src/BaseWrapper.sol";
-
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { TransferHelper, ERC20 } from "src/utils/TransferHelper.sol";
 
 contract LoanReceiver {
+    using TransferHelper for address;
+
     function retrieve(address asset) external {
-        ERC20(asset).transfer(msg.sender, ERC20(asset).balanceOf(address(this)));
+        asset.safeTransfer(msg.sender, ERC20(asset).balanceOf(address(this)));
     }
 }
 
 /// @dev Mock flash loan borrower. It allows to examine the state of the borrower during the callback.
 contract MockBorrower {
+    using TransferHelper for address;
+
     bytes32 public constant ERC3156PP_CALLBACK_SUCCESS = keccak256("ERC3156PP_CALLBACK_SUCCESS");
     IERC7399 lender;
     LoanReceiver loanReceiver;
@@ -50,7 +53,7 @@ contract MockBorrower {
         flashFee = fee;
         loanReceiver.retrieve(asset);
         flashBalance = ERC20(asset).balanceOf(address(this));
-        ERC20(asset).transfer(paymentReceiver, amount + fee);
+        asset.safeTransfer(paymentReceiver, amount + fee);
 
         return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
