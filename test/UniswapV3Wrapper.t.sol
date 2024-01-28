@@ -42,7 +42,6 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         registry.set("UniswapV3Wrapper", abi.encode(address(factory), weth, usdc, usdt));
         wrapper = new UniswapV3Wrapper(registry);
         borrower = new MockBorrower(wrapper);
-        deal(address(usdc), address(this), 1e6); // For fees
     }
 
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
@@ -63,12 +62,27 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         assertEq(wrapper.maxFlashLoan(wbtc), 2403.63114397e8, "Max flash loan not right");
     }
 
-    function test_flashLoan() external {
-        console2.log("test_flashLoan");
-        uint256 loan = 100e6;
-        uint256 fee = wrapper.flashFee(usdc, loan);
-        ERC20(usdc).transfer(address(borrower), fee);
-        bytes memory result = borrower.flashBorrow(usdc, loan);
+    function test_flashLoan_USDC() external {
+        test_flashLoan(usdc, 100e6);
+    }
+
+    function test_flashLoan_USDT() external {
+        test_flashLoan(usdt, 100e6);
+    }
+
+    function test_flashLoan_WETH() external {
+        test_flashLoan(weth, 0.1 ether);
+    }
+
+    function test_flashLoan_WBTC() external {
+        test_flashLoan(wbtc, 0.1e8);
+    }
+
+    function test_flashLoan(address token, uint256 loan) internal {
+        console2.log(string.concat("test_flashLoan: ", ERC20(token).symbol()));
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        bytes memory result = borrower.flashBorrow(token, loan);
 
         // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
@@ -76,7 +90,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
 
         // Test the borrower state during the callback
         assertEq(borrower.flashInitiator(), address(borrower), "flashInitiator");
-        assertEq(address(borrower.flashAsset()), address(usdc), "flashAsset");
+        assertEq(address(borrower.flashAsset()), address(token), "flashAsset");
         assertEq(borrower.flashAmount(), loan, "flashAmount");
         // The amount we transferred to pay for fees, plus the amount we borrowed
         assertEq(borrower.flashBalance(), loan + fee, "flashBalance");

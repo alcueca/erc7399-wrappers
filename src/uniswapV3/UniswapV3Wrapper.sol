@@ -80,11 +80,11 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         external
         override
     {
-        (address asset, address other, uint24 feeTier, uint256 amount, bytes memory data) =
+        (address asset0, address asset1, uint24 feeTier, uint256 amount, bytes memory data) =
             abi.decode(params, (address, address, uint24, uint256, bytes));
-        if (msg.sender != address(_pool(asset, other, feeTier))) revert UnknownPool();
+        if (msg.sender != address(_pool(asset0, asset1, feeTier))) revert UnknownPool();
 
-        uint256 fee = fee0 > 0 ? fee0 : fee1;
+        (address asset, uint256 fee) = fee0 > 0 ? (asset0, fee0) : (asset1, fee1);
         _bridgeToCallback(asset, amount, fee, data);
     }
 
