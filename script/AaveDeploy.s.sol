@@ -28,7 +28,7 @@ contract AaveDeploy is Script {
     }
 
     bytes32 public constant SALT = keccak256("alcueca-2");
-    Network public constant NETWORK = Network.GNOSIS;
+    Network public constant NETWORK = Network.MAINNET;
 
     Registry internal registry = Registry(0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c);
 
@@ -114,7 +114,7 @@ contract AaveDeploy is Script {
             console2.log(key);
             if (keccak256(registry.get(key)) != keccak256(paramsBytes)) {
                 // vm.broadcast();
-                // vm.prank(0x0faAe596Ce5d762BcD78b4415992726492570B54);
+                // vm.prank(0xfA6DaAF31F8E2498b5D4C43E59c6eDd345D951F5);
                 // registry.set(key, paramsBytes);
                 console2.logBytes(abi.encodeWithSelector(registry.set.selector, key, paramsBytes));
             }
