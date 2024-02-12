@@ -15,3 +15,6 @@
 [submodule "lib/registry"]
 	path = lib/registry
 	url = https://github.com/alcueca/registry
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
