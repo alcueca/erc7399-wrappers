@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 import { IMorphoFlashLoanCallback } from "./interfaces/IMorphoFlashLoanCallback.sol";
 import { IMorpho } from "./interfaces/IMorpho.sol";
 
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev MorphoBlue Flash Lender that uses MorphoBlue as source of liquidity.
 contract MorphoBlueWrapper is BaseWrapper, IMorphoFlashLoanCallback {
@@ -20,7 +20,7 @@ contract MorphoBlueWrapper is BaseWrapper, IMorphoFlashLoanCallback {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
-        return ERC20(asset).balanceOf(address(morpho));
+        return IERC20(asset).balanceOf(address(morpho));
     }
 
     /// @inheritdoc IERC7399

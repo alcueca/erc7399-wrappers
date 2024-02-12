@@ -7,15 +7,12 @@ import { ICallee } from "./interfaces/ICallee.sol";
 
 import { Arrays } from "../utils/Arrays.sol";
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Dolomite Flash Lender that uses DolomiteMargin as source of liquidity.
 contract DolomiteWrapper is BaseWrapper, ICallee {
     using Arrays for uint256;
     using Arrays for address;
-    using FixedPointMathLib for uint256;
 
     error NotSelf();
     error NotDolomite();
@@ -31,7 +28,7 @@ contract DolomiteWrapper is BaseWrapper, ICallee {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
-        return ERC20(asset).balanceOf(address(dolomite));
+        return IERC20(asset).balanceOf(address(dolomite));
     }
 
     /// @inheritdoc IERC7399

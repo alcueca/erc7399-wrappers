@@ -12,7 +12,7 @@
   optimizer_runs = 10_000
   out = "out"
   script = "script"
-  solc = "0.8.19"
+  solc = "0.8.24"
   src = "src"
   test = "test"
   evm_version = 'london'

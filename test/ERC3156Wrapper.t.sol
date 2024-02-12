@@ -6,7 +6,8 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
 import { ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
@@ -14,6 +15,8 @@ import { ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract ERC3156WrapperTest is PRBTest, StdCheats {
+    using SafeERC20 for IERC20;
+
     ERC3156Wrapper internal wrapper;
     MockBorrower internal borrower;
     address internal dai;
@@ -55,7 +58,7 @@ contract ERC3156WrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
+        IERC20(dai).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
         // Test the return values passed through the wrapper

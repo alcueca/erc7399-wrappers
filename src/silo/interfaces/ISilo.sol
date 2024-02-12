@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.4;
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface ISilo {
     type AssetStatus is uint8;
@@ -59,34 +59,34 @@ interface ISilo {
     );
 
     function VERSION() external view returns (uint128);
-    function accrueInterest(ERC20 _asset) external returns (uint256 interest);
-    function assetStorage(ERC20 _asset) external view returns (AssetStorage memory);
-    function borrow(ERC20 _asset, uint256 _amount) external returns (uint256 debtAmount, uint256 debtShare);
+    function accrueInterest(IERC20 _asset) external returns (uint256 interest);
+    function assetStorage(IERC20 _asset) external view returns (AssetStorage memory);
+    function borrow(IERC20 _asset, uint256 _amount) external returns (uint256 debtAmount, uint256 debtShare);
     function borrowFor(
-        ERC20 _asset,
+        IERC20 _asset,
         address _borrower,
         address _receiver,
         uint256 _amount
     )
         external
         returns (uint256 debtAmount, uint256 debtShare);
-    function borrowPossible(ERC20 _asset, address _borrower) external view returns (bool);
+    function borrowPossible(IERC20 _asset, address _borrower) external view returns (bool);
     function deposit(
-        ERC20 _asset,
+        IERC20 _asset,
         uint256 _amount,
         bool _collateralOnly
     )
         external
         returns (uint256 collateralAmount, uint256 collateralShare);
     function depositFor(
-        ERC20 _asset,
+        IERC20 _asset,
         address _depositor,
         uint256 _amount,
         bool _collateralOnly
     )
         external
         returns (uint256 collateralAmount, uint256 collateralShare);
-    function depositPossible(ERC20 _asset, address _depositor) external view returns (bool);
+    function depositPossible(IERC20 _asset, address _depositor) external view returns (bool);
     function flashLiquidate(
         address[] memory _users,
         bytes memory _flashReceiverData
@@ -104,12 +104,12 @@ interface ISilo {
         returns (address[] memory assets, AssetStorage[] memory assetsStorage);
     function harvestProtocolFees() external returns (uint256[] memory harvestedAmounts);
     function initAssetsTokens() external;
-    function interestData(ERC20 _asset) external view returns (AssetInterestData memory);
+    function interestData(IERC20 _asset) external view returns (AssetInterestData memory);
     function isSolvent(address _user) external view returns (bool);
-    function liquidity(ERC20 _asset) external view returns (uint256);
-    function repay(ERC20 _asset, uint256 _amount) external returns (uint256 repaidAmount, uint256 repaidShare);
+    function liquidity(IERC20 _asset) external view returns (uint256);
+    function repay(IERC20 _asset, uint256 _amount) external returns (uint256 repaidAmount, uint256 repaidShare);
     function repayFor(
-        ERC20 _asset,
+        IERC20 _asset,
         address _borrower,
         uint256 _amount
     )
@@ -118,16 +118,16 @@ interface ISilo {
     function siloAsset() external view returns (address);
     function siloRepository() external view returns (address);
     function syncBridgeAssets() external;
-    function utilizationData(ERC20 _asset) external view returns (UtilizationData memory data);
+    function utilizationData(IERC20 _asset) external view returns (UtilizationData memory data);
     function withdraw(
-        ERC20 _asset,
+        IERC20 _asset,
         uint256 _amount,
         bool _collateralOnly
     )
         external
         returns (uint256 withdrawnAmount, uint256 withdrawnShare);
     function withdrawFor(
-        ERC20 _asset,
+        IERC20 _asset,
         address _depositor,
         address _receiver,
         uint256 _amount,

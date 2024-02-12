@@ -8,7 +8,7 @@ import { IUniswapV3FlashCallback } from "./interfaces/callback/IUniswapV3FlashCa
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
 import { PoolAddress } from "./interfaces/PoolAddress.sol";
 
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Uniswap V3 Flash Lender that uses Uniswap V3 Pools as source of liquidity.
 /// Uniswap V3 allows pushing repayments, so we override `_repayTo`.
@@ -139,5 +139,5 @@ function canLoan(IUniswapV3Pool pool, address asset, uint256 amount) view return
 }
 
 function balance(IUniswapV3Pool pool, address asset) view returns (uint256) {
-    return ERC20(asset).balanceOf(address(pool));
+    return IERC20(asset).balanceOf(address(pool));
 }

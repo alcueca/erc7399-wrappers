@@ -5,8 +5,10 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { WETH } from "solmate/tokens/WETH.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import { IWETH9 } from "src/dependencies/IWETH9.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 import { Arrays } from "src/utils/Arrays.sol";
 
@@ -21,6 +23,7 @@ import { CompoundWrapper } from "../src/compound/CompoundWrapper.sol";
 contract CompoundWrapperTest is PRBTest, StdCheats {
     using Arrays for uint256;
     using Arrays for address;
+    using SafeERC20 for IERC20;
 
     CompoundWrapper internal wrapper;
     MockBorrower internal borrower;
@@ -28,8 +31,8 @@ contract CompoundWrapperTest is PRBTest, StdCheats {
     IFlashLoaner internal balancer;
 
     IComptroller internal comptroller;
-    WETH internal nativeToken;
-    ERC20 internal intermediateToken;
+    IWETH9 internal nativeToken;
+    IERC20 internal intermediateToken;
 
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
@@ -44,7 +47,7 @@ contract CompoundWrapperTest is PRBTest, StdCheats {
         dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
         comptroller = IComptroller(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B);
-        nativeToken = WETH(payable(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2));
+        nativeToken = IWETH9(payable(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2));
         intermediateToken = nativeToken;
 
         Registry registry = new Registry(address(this));
@@ -71,7 +74,7 @@ contract CompoundWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
+        IERC20(dai).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
         // Test the return values passed through the wrapper
@@ -98,8 +101,8 @@ contract CompoundWrapperTest is PRBTest, StdCheats {
 
     function test_setCToken() public {
         vm.expectRevert(CompoundWrapper.InvalidMarket.selector);
-        wrapper.setCToken(ERC20(dai), ICToken(address(0x666)));
+        wrapper.setCToken(IERC20(dai), ICToken(address(0x666)));
 
-        wrapper.setCToken(ERC20(dai), ICToken(address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643)));
+        wrapper.setCToken(IERC20(dai), ICToken(address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643)));
     }
 }

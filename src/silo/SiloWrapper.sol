@@ -9,19 +9,20 @@ import { ISiloLens } from "./interfaces/ISiloLens.sol";
 import { ISilo } from "./interfaces/ISilo.sol";
 
 import { Arrays } from "../utils/Arrays.sol";
+import { WAD } from "../utils/constants.sol";
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { SafeTransferLib } from "lib/solmate/src/utils/SafeTransferLib.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Silo Flash Lender that uses Balancer Pools as source of X liquidity,
 /// then deposits X on Silo to borrow whatever's necessary.
 contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
-    using FixedPointMathLib for uint256;
-    using SafeTransferLib for ERC20;
+
+    using SafeERC20 for IERC20;
 
     bool public constant COLLATERAL_ONLY = false;
 
@@ -31,11 +32,11 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
     IFlashLoaner public immutable balancer;
     ISiloRepository public immutable repository;
     ISiloLens public immutable lens;
-    ERC20 public immutable intermediateToken;
+    IERC20 public immutable intermediateToken;
 
     bytes32 private flashLoanDataHash;
 
-    constructor(ISiloLens _lens, IFlashLoaner _balancer, ERC20 _intermediateToken) {
+    constructor(ISiloLens _lens, IFlashLoaner _balancer, IERC20 _intermediateToken) {
         lens = _lens;
         repository = _lens.siloRepository();
         balancer = _balancer;
@@ -46,15 +47,17 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
     function maxFlashLoan(address asset) public view returns (uint256) {
         // Optimistically assume that balancer has enough liquidity of the intermediate token
         // Each Silo fork has a different oracle, so it'd be hard to get the exact amount that we can borrow
-        ISilo silo = repository.getSilo(ERC20(asset));
-        return address(silo) == address(0) ? 0 : lens.liquidity(silo, ERC20(asset));
+        ISilo silo = repository.getSilo(IERC20(asset));
+        return address(silo) == address(0) ? 0 : lens.liquidity(silo, IERC20(asset));
     }
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
         uint256 max = maxFlashLoan(asset);
         require(max > 0, "Unsupported currency");
-        uint256 fee = amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+        uint256 fee = Math.mulDiv(
+            amount, balancer.getProtocolFeesCollector().getFlashLoanFeePercentage(), WAD, Math.Rounding.Ceil
+        );
         // If Balancer ever charges a fee, we can't repay it with the flash loan, so this wrapper becomes useless
         return amount >= max || fee > 0 ? type(uint256).max : 0;
     }
@@ -80,7 +83,7 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
         if (keccak256(params) != flashLoanDataHash) revert HashMismatch();
         delete flashLoanDataHash;
 
-        (ERC20 asset, uint256 amount, bytes memory data) = abi.decode(params, (ERC20, uint256, bytes));
+        (IERC20 asset, uint256 amount, bytes memory data) = abi.decode(params, (IERC20, uint256, bytes));
 
         uint256 intermediateAmount = amounts[0];
         ISilo silo = _silo(asset);
@@ -96,13 +99,13 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
         intermediateToken.safeTransfer(address(balancer), intermediateAmount);
     }
 
-    function _silo(ERC20 asset) internal returns (ISilo silo) {
+    function _silo(IERC20 asset) internal returns (ISilo silo) {
         silo = repository.getSilo(asset);
         if (asset.allowance(address(this), address(silo)) == 0) {
-            asset.safeApprove(address(silo), type(uint256).max);
+            asset.forceApprove(address(silo), type(uint256).max);
         }
         if (intermediateToken.allowance(address(this), address(silo)) == 0) {
-            intermediateToken.safeApprove(address(silo), type(uint256).max);
+            intermediateToken.forceApprove(address(silo), type(uint256).max);
         }
     }
 }
