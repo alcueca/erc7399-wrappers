@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib, ERC20 } from "lib/solmate/src/utils/SafeTransferLib.sol";
 import { WETH } from "solmate/tokens/WETH.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 import { Arrays } from "src/utils/Arrays.sol";
@@ -18,6 +18,8 @@ import { SiloWrapper } from "../src/silo/SiloWrapper.sol";
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract SiloWrapperTest is PRBTest, StdCheats {
+    using SafeTransferLib for ERC20;
+
     using Arrays for uint256;
     using Arrays for address;
 
@@ -52,7 +54,7 @@ contract SiloWrapperTest is PRBTest, StdCheats {
 
         // Silo has a rounding issue for which we get 1 wei less than what we deposited
         vm.prank(address(balancer));
-        intermediateToken.transfer(address(wrapper), dust);
+        intermediateToken.safeTransfer(address(wrapper), dust);
     }
 
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
@@ -86,7 +88,7 @@ contract SiloWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 10_000e18;
         uint256 fee = wrapper.flashFee(gmx, loan);
-        ERC20(gmx).transfer(address(borrower), fee);
+        ERC20(gmx).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(gmx, loan);
 
         // Test the return values passed through the wrapper

@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib, ERC20 } from "lib/solmate/src/utils/SafeTransferLib.sol";
 
 import { Arrays } from "src/utils/Arrays.sol";
 
@@ -18,6 +18,7 @@ import { DolomiteWrapper } from "../src/dolomite/DolomiteWrapper.sol";
 contract DolomiteWrapperTest is PRBTest, StdCheats {
     using Arrays for uint256;
     using Arrays for address;
+    using SafeTransferLib for ERC20;
 
     DolomiteWrapper internal wrapper;
     MockBorrower internal borrower;
@@ -55,7 +56,7 @@ contract DolomiteWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 10e8;
         uint256 fee = wrapper.flashFee(wbtc, loan);
-        ERC20(wbtc).transfer(address(borrower), fee);
+        ERC20(wbtc).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(wbtc, loan);
 
         // Test the return values passed through the wrapper

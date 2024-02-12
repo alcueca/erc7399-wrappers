@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib, ERC20 } from "lib/solmate/src/utils/SafeTransferLib.sol";
 
 import { IMorpho } from "src/morpho/interfaces/IMorpho.sol";
 import { MockBorrower } from "./MockBorrower.sol";
@@ -14,6 +14,8 @@ import { MorphoBlueWrapper } from "src/morpho/MorphoBlueWrapper.sol";
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract MorphoBlueWrapperTest is PRBTest, StdCheats {
+    using SafeTransferLib for ERC20;
+
     MorphoBlueWrapper internal wrapper;
     MockBorrower internal borrower;
     address internal wstETH;
@@ -68,7 +70,7 @@ contract MorphoBlueWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 100e18;
         uint256 fee = wrapper.flashFee(wstETH, loan);
-        ERC20(wstETH).transfer(address(borrower), fee);
+        ERC20(wstETH).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(wstETH, loan);
 
         // Test the return values passed through the wrapper

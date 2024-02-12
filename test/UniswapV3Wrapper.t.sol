@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib, ERC20 } from "lib/solmate/src/utils/SafeTransferLib.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
@@ -15,6 +15,8 @@ import { IUniswapV3Factory } from "../src/uniswapV3/interfaces/IUniswapV3Factory
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract UniswapV3WrapperTest is PRBTest, StdCheats {
+    using SafeTransferLib for ERC20;
+
     UniswapV3Wrapper internal wrapper;
     MockBorrower internal borrower;
     address internal usdc;

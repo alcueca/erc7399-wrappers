@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib, ERC20 } from "lib/solmate/src/utils/SafeTransferLib.sol";
 import { WETH } from "solmate/tokens/WETH.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 import { Arrays } from "src/utils/Arrays.sol";
@@ -21,6 +21,7 @@ import { CompoundWrapper } from "../src/compound/CompoundWrapper.sol";
 contract MoonwellWrapperTest is PRBTest, StdCheats {
     using Arrays for uint256;
     using Arrays for address;
+    using SafeTransferLib for ERC20;
 
     CompoundWrapper internal wrapper;
     MockBorrower internal borrower;
@@ -71,7 +72,7 @@ contract MoonwellWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
+        ERC20(dai).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
         // Test the return values passed through the wrapper

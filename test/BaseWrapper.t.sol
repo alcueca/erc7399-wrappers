@@ -5,17 +5,19 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib, ERC20 } from "lib/solmate/src/utils/SafeTransferLib.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
 
 import { BaseWrapper } from "src/BaseWrapper.sol";
 
 contract BaseWrapperTest is PRBTest, StdCheats {
+    using SafeTransferLib for ERC20;
+
     FooWrapper internal wrapper;
     FooLender internal lender;
     MockBorrower internal borrower;
-    address internal dai;
+    address internal usdt;
 
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
@@ -25,22 +27,22 @@ contract BaseWrapperTest is PRBTest, StdCheats {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 98_674_994 });
-        dai = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
+        vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 19_211_853 });
+        usdt = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
         lender = new FooLender();
-        deal(address(dai), address(lender), 10_000_000e18);
+        deal(address(usdt), address(lender), 10_000_000e6);
         wrapper = new FooWrapper(lender);
         borrower = new MockBorrower(wrapper);
-        deal(address(dai), address(this), 1e18); // For fees
+        deal(address(usdt), address(this), 1e6); // For fees
     }
 
     function test_flashLoan() external {
         console2.log("test_flashLoan");
-        uint256 loan = 1e18;
-        uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
-        bytes memory result = borrower.flashBorrow(dai, loan);
+        uint256 loan = 1e6;
+        uint256 fee = wrapper.flashFee(usdt, loan);
+        ERC20(usdt).safeTransfer(address(borrower), fee);
+        bytes memory result = borrower.flashBorrow(usdt, loan);
 
         // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
@@ -52,10 +54,10 @@ contract BaseWrapperTest is PRBTest, StdCheats {
 
     function test_flashLoanNoPointers() external {
         console2.log("test_flashLoan");
-        uint256 loan = 1e18;
-        uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
-        bytes memory result = borrower.flashBorrow(dai, loan);
+        uint256 loan = 1e6;
+        uint256 fee = wrapper.flashFee(usdt, loan);
+        ERC20(usdt).safeTransfer(address(borrower), fee);
+        bytes memory result = borrower.flashBorrow(usdt, loan);
 
         // Test the return values passed through the wrapper
         (bytes32 callbackReturn) = abi.decode(result, (bytes32));
@@ -67,12 +69,12 @@ contract BaseWrapperTest is PRBTest, StdCheats {
 
     function test_flashLoan_void() external {
         console2.log("test_flashLoan_void");
-        uint256 loan = 1e18;
-        uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
+        uint256 loan = 1e6;
+        uint256 fee = wrapper.flashFee(usdt, loan);
+        ERC20(usdt).safeTransfer(address(borrower), fee);
 
         vm.record();
-        bytes memory result = borrower.flashBorrowVoid(dai, loan);
+        bytes memory result = borrower.flashBorrowVoid(usdt, loan);
 
         // Test the return values passed through the wrapper
         assertEq(result, "", "Void result");
@@ -99,6 +101,8 @@ contract BaseWrapperTest is PRBTest, StdCheats {
 }
 
 contract FooLender {
+    using SafeTransferLib for ERC20;
+
     function flashLoan(
         address asset,
         uint256 amount,
@@ -108,13 +112,15 @@ contract FooLender {
         external
     {
         uint256 balance = ERC20(asset).balanceOf(address(this));
-        ERC20(asset).transfer(msg.sender, amount);
+        ERC20(asset).safeTransfer(msg.sender, amount);
         callback(asset, data);
         require(ERC20(asset).balanceOf(address(this)) >= balance, "FooLender: insufficient balance");
     }
 }
 
 contract FooWrapper is BaseWrapper {
+    using SafeTransferLib for ERC20;
+
     FooLender immutable lender;
 
     constructor(FooLender lender_) {
@@ -127,7 +133,7 @@ contract FooWrapper is BaseWrapper {
 
     function flashLoanCallback(address asset, bytes memory params) external virtual {
         _bridgeToCallback(asset, ERC20(asset).balanceOf(address(this)), 0, params);
-        ERC20(asset).transfer(msg.sender, ERC20(asset).balanceOf(address(this)));
+        ERC20(asset).safeTransfer(msg.sender, ERC20(asset).balanceOf(address(this)));
     }
 
     function maxFlashLoan(address token) external view override returns (uint256) { }
