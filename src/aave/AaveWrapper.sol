@@ -72,7 +72,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanReceiverV2V3 {
         return true;
     }
 
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal virtual override {
         IPool(POOL).flashLoan({
             receiverAddress: address(this),
             assets: asset.toArray(),
@@ -92,7 +92,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanReceiverV2V3 {
         max = !isFrozen && isActive && isFlashLoanEnabled ? IERC20(asset).balanceOf(aTokenAddress) : 0;
     }
 
-    function _flashFee(uint256 amount) internal view returns (uint256) {
+    function _flashFee(uint256 amount) internal view virtual returns (uint256) {
         return Math.mulDiv(amount, IPool(POOL).FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18, WAD, Math.Rounding.Ceil);
     }
 }
