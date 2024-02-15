@@ -11,20 +11,23 @@ import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/ex
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
-import { AaveWrapper } from "../src/aave/AaveWrapper.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { PermissionedAaveWrapper, AaveWrapper } from "../src/aave/PermissionedAaveWrapper.sol";
 import { Arrays } from "src/utils/Arrays.sol";
 import { IPoolAddressesProviderV3 } from "../src/aave/interfaces/IPoolAddressesProviderV3.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract AaveWrapperTest is PRBTest, StdCheats {
+contract PermissionedAaveWrapperTest is PRBTest, StdCheats {
     using Arrays for *;
     using SafeERC20 for IERC20;
 
-    AaveWrapper internal wrapper;
+    PermissionedAaveWrapper internal wrapper;
     MockBorrower internal borrower;
     address internal dai;
     IPoolAddressesProviderV3 internal provider;
+
+    address internal owner = makeAddr("owner");
 
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
@@ -43,15 +46,14 @@ contract AaveWrapperTest is PRBTest, StdCheats {
             "AaveV3Wrapper", abi.encode(provider.getPool(), address(provider), provider.getPoolDataProvider(), false)
         );
 
-        wrapper = new AaveWrapper(registry, "AaveV3");
+        wrapper = new PermissionedAaveWrapper(owner, registry, "AaveV3");
         borrower = new MockBorrower(wrapper);
-        deal(address(dai), address(this), 1e18); // For fees
     }
 
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
     function test_flashFee() external {
         console2.log("test_flashFee");
-        assertEq(wrapper.flashFee(dai, 1e18), 5e14, "Fee not right");
+        assertEq(wrapper.flashFee(dai, 1e18), 0, "Fee not right");
     }
 
     function test_maxFlashLoan() external {
@@ -61,6 +63,16 @@ contract AaveWrapperTest is PRBTest, StdCheats {
 
     function test_flashLoan() external {
         console2.log("test_flashLoan");
+        bytes32 role = wrapper.BORROWER();
+        vm.prank(owner);
+        wrapper.grantRole(role, address(borrower));
+
+        vm.mockCall(
+            provider.getACLManager(),
+            abi.encodeWithSelector(IACLManager.isFlashBorrower.selector, wrapper),
+            abi.encode(true)
+        );
+
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
         IERC20(dai).safeTransfer(address(borrower), fee);
@@ -75,7 +87,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         assertEq(address(borrower.flashAsset()), address(dai));
         assertEq(borrower.flashAmount(), loan);
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
-            // borrowed
+        // borrowed
         assertEq(borrower.flashFee(), fee);
     }
 
@@ -99,4 +111,18 @@ contract AaveWrapperTest is PRBTest, StdCheats {
             params: ""
         });
     }
+
+    function test_flashLoan_permissions() external {
+        console2.log("test_flashLoan_permissions");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, borrower, wrapper.BORROWER()
+            )
+        );
+        borrower.flashBorrow(dai, 1e18);
+    }
+}
+
+interface IACLManager {
+    function isFlashBorrower(address) external view returns (bool);
 }

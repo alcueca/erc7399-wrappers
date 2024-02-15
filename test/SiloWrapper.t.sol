@@ -5,8 +5,10 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
-import { WETH } from "solmate/tokens/WETH.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import { IWETH9 } from "src/dependencies/IWETH9.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 import { Arrays } from "src/utils/Arrays.sol";
 
@@ -20,6 +22,7 @@ import { SiloWrapper } from "../src/silo/SiloWrapper.sol";
 contract SiloWrapperTest is PRBTest, StdCheats {
     using Arrays for uint256;
     using Arrays for address;
+    using SafeERC20 for IERC20;
 
     SiloWrapper internal wrapper;
     MockBorrower internal borrower;
@@ -27,8 +30,8 @@ contract SiloWrapperTest is PRBTest, StdCheats {
     IFlashLoaner internal balancer;
 
     ISiloLens public lens;
-    WETH internal nativeToken;
-    ERC20 internal intermediateToken;
+    IWETH9 internal nativeToken;
+    IERC20 internal intermediateToken;
 
     uint256 internal dust = 1e10;
 
@@ -45,14 +48,14 @@ contract SiloWrapperTest is PRBTest, StdCheats {
         gmx = 0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a;
 
         lens = ISiloLens(0x07b94eB6AaD663c4eaf083fBb52928ff9A15BE47);
-        intermediateToken = ERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // WETH
+        intermediateToken = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // IWETH9
 
         wrapper = new SiloWrapper(lens, balancer, intermediateToken);
         borrower = new MockBorrower(wrapper);
 
         // Silo has a rounding issue for which we get 1 wei less than what we deposited
         vm.prank(address(balancer));
-        intermediateToken.transfer(address(wrapper), dust);
+        intermediateToken.safeTransfer(address(wrapper), dust);
     }
 
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
@@ -86,7 +89,7 @@ contract SiloWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 10_000e18;
         uint256 fee = wrapper.flashFee(gmx, loan);
-        ERC20(gmx).transfer(address(borrower), fee);
+        IERC20(gmx).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(gmx, loan);
 
         // Test the return values passed through the wrapper

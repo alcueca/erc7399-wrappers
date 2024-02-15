@@ -8,15 +8,15 @@ import { IPool } from "./interfaces/IPool.sol";
 import { IPoolDataProvider } from "./interfaces/IPoolDataProvider.sol";
 import { IFlashLoanReceiverV2V3 } from "./interfaces/IFlashLoanReceiverV2V3.sol";
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 import { Arrays } from "../utils/Arrays.sol";
+import { WAD } from "../utils/constants.sol";
 
 /// @dev Aave Flash Lender that uses the Aave Pool as source of liquidity.
 /// Aave doesn't allow flow splitting or pushing repayments, so this wrapper is completely vanilla.
 contract AaveWrapper is BaseWrapper, IFlashLoanReceiverV2V3 {
-    using FixedPointMathLib for uint256;
     using Arrays for *;
 
     error NotPool();
@@ -72,7 +72,7 @@ contract AaveWrapper is BaseWrapper, IFlashLoanReceiverV2V3 {
         return true;
     }
 
-    function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
+    function _flashLoan(address asset, uint256 amount, bytes memory data) internal virtual override {
         IPool(POOL).flashLoan({
             receiverAddress: address(this),
             assets: asset.toArray(),
@@ -89,10 +89,10 @@ contract AaveWrapper is BaseWrapper, IFlashLoanReceiverV2V3 {
         (address aTokenAddress,,) = dataProvider.getReserveTokensAddresses(asset);
         bool isFlashLoanEnabled = isV2 ? true : dataProvider.getFlashLoanEnabled(asset);
 
-        max = !isFrozen && isActive && isFlashLoanEnabled ? ERC20(asset).balanceOf(aTokenAddress) : 0;
+        max = !isFrozen && isActive && isFlashLoanEnabled ? IERC20(asset).balanceOf(aTokenAddress) : 0;
     }
 
-    function _flashFee(uint256 amount) internal view returns (uint256) {
-        return amount.mulWadUp(IPool(POOL).FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18);
+    function _flashFee(uint256 amount) internal view virtual returns (uint256) {
+        return Math.mulDiv(amount, IPool(POOL).FLASHLOAN_PREMIUM_TOTAL() * 0.0001e18, WAD, Math.Rounding.Ceil);
     }
 }

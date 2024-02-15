@@ -7,7 +7,8 @@ import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { Registry } from "lib/registry/src/Registry.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
 import { AaveWrapper } from "../src/aave/AaveWrapper.sol";
@@ -19,6 +20,7 @@ import { IPoolDataProvider } from "../src/aave/interfaces/IPoolDataProvider.sol"
 /// https://book.getfoundry.sh/forge/writing-tests
 contract AaveWrapperTest is PRBTest, StdCheats {
     using Arrays for *;
+    using SafeERC20 for IERC20;
 
     AaveWrapper internal wrapper;
     MockBorrower internal borrower;
@@ -68,7 +70,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         console2.log("test_flashLoan");
         uint256 loan = 1e18;
         uint256 fee = wrapper.flashFee(dai, loan);
-        ERC20(dai).transfer(address(borrower), fee);
+        IERC20(dai).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(dai, loan);
 
         // Test the return values passed through the wrapper

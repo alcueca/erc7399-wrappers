@@ -5,18 +5,18 @@ pragma solidity ^0.8.19;
 import { IFlashLoanRecipient } from "./interfaces/IFlashLoanRecipient.sol";
 import { IFlashLoaner } from "./interfaces/IFlashLoaner.sol";
 
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+
 import { Arrays } from "../utils/Arrays.sol";
+import { WAD } from "../utils/constants.sol";
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Balancer Flash Lender that uses Balancer Pools as source of liquidity.
 /// Balancer allows pushing repayments, so we override `_repayTo`.
 contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
-    using FixedPointMathLib for uint256;
 
     error NotBalancer();
     error HashMismatch();
@@ -68,10 +68,12 @@ contract BalancerWrapper is BaseWrapper, IFlashLoanRecipient {
     }
 
     function _flashFee(uint256 amount) internal view returns (uint256) {
-        return amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+        return Math.mulDiv(
+            amount, balancer.getProtocolFeesCollector().getFlashLoanFeePercentage(), WAD, Math.Rounding.Ceil
+        );
     }
 
     function _maxFlashLoan(address asset) internal view returns (uint256) {
-        return ERC20(asset).balanceOf(address(balancer));
+        return IERC20(asset).balanceOf(address(balancer));
     }
 }

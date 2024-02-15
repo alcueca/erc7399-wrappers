@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { Registry } from "lib/registry/src/Registry.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
@@ -49,8 +49,8 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         console2.log("test_flashFee");
         assertEq(wrapper.flashFee(usdc, 100e6), 0.01e6, "Fee not exact USDC");
         assertEq(wrapper.flashFee(usdt, 100e6), 0.01e6, "Fee not exact USDT");
-        assertEq(wrapper.flashFee(weth, 1e18), 0.0001e18, "Fee not exact WETH 1");
-        assertEq(wrapper.flashFee(weth, 10e18), 0.005e18, "Fee not exact WETH 2");
+        assertEq(wrapper.flashFee(weth, 1e18), 0.0001e18, "Fee not exact IWETH9 1");
+        assertEq(wrapper.flashFee(weth, 10e18), 0.005e18, "Fee not exact IWETH9 2");
         assertEq(wrapper.flashFee(wbtc, 1e8), 0.0005e8, "Fee not exact WBTC");
     }
 
@@ -79,7 +79,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
     }
 
     function test_flashLoan(address token, uint256 loan) internal {
-        console2.log(string.concat("test_flashLoan: ", ERC20(token).symbol()));
+        console2.log(string.concat("test_flashLoan: ", IERC20(token).symbol()));
         uint256 fee = wrapper.flashFee(token, loan);
         deal(address(token), address(borrower), fee);
         bytes memory result = borrower.flashBorrow(token, loan);

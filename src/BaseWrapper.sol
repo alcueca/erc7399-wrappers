@@ -4,7 +4,8 @@ pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
 
-import { TransferHelper, ERC20 } from "./utils/TransferHelper.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { FunctionCodec } from "./utils/FunctionCodec.sol";
 
 /// @dev All ERC7399 flash loan wrappers have the same general structure.
@@ -21,7 +22,7 @@ import { FunctionCodec } from "./utils/FunctionCodec.sol";
 /// -     The lender verifies or pulls the repayment.
 /// - The wrapper returns to the original borrower the stored result of its callback.
 abstract contract BaseWrapper is IERC7399 {
-    using TransferHelper for address;
+    using SafeERC20 for IERC20;
 
     struct Data {
         address loanReceiver;
@@ -115,14 +116,14 @@ abstract contract BaseWrapper is IERC7399 {
     /// @dev Transfer the assets to the loan receiver.
     /// Override it if the provider can send the funds directly
     function _transferAssets(address asset, uint256 amount, address loanReceiver) internal virtual {
-        asset.safeTransfer(loanReceiver, amount);
+        IERC20(asset).safeTransfer(loanReceiver, amount);
     }
 
     /// @dev Approve the repayment of the loan to the provider if needed.
     /// Override it if the provider can receive the funds directly and you want to avoid the if condition
     function _approveRepayment(address asset, uint256 amount, uint256 fee) internal virtual {
         if (_repayTo() == address(this)) {
-            ERC20(asset).approve(msg.sender, amount + fee);
+            IERC20(asset).forceApprove(msg.sender, amount + fee);
         }
     }
 

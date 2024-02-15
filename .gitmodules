@@ -6,9 +6,6 @@
   branch = "release-v0"
   path = "lib/prb-test"
   url = "https://github.com/PaulRBerg/prb-test"
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/transmissions11/solmate
 [submodule "lib/erc3156"]
 	path = lib/erc3156
 	url = https://github.com/alcueca/erc3156
@@ -18,3 +15,6 @@
 [submodule "lib/registry"]
 	path = lib/registry
 	url = https://github.com/alcueca/registry
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts

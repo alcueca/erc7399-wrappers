@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.4;
 
-import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { ISiloRepository } from "./ISiloRepository.sol";
 import { ISilo } from "./ISilo.sol";
 
@@ -58,7 +58,7 @@ interface ISiloLens {
     function hasPosition(address _silo, address _user) external view returns (bool);
     function inDebt(address _silo, address _user) external view returns (bool);
     function lensPing() external pure returns (bytes4);
-    function liquidity(ISilo _silo, ERC20 _asset) external view returns (uint256);
+    function liquidity(ISilo _silo, IERC20 _asset) external view returns (uint256);
     function protocolFees(address _silo, address _asset) external view returns (uint256);
     function siloRepository() external view returns (ISiloRepository);
     function totalBorrowAmount(address _silo, address _asset) external view returns (uint256);

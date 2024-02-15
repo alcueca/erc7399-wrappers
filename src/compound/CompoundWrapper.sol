@@ -10,22 +10,23 @@ import { IComptroller, Error } from "./interfaces/IComptroller.sol";
 import { ICToken } from "./interfaces/ICToken.sol";
 
 import { Arrays } from "../utils/Arrays.sol";
+import { WAD } from "../utils/constants.sol";
 
-import { FixedPointMathLib } from "lib/solmate/src/utils/FixedPointMathLib.sol";
-import { SafeTransferLib } from "lib/solmate/src/utils/SafeTransferLib.sol";
-import { WETH } from "lib/solmate/src/tokens/WETH.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IWETH9 } from "../dependencies/IWETH9.sol";
 
-import { BaseWrapper, IERC7399, ERC20 } from "../BaseWrapper.sol";
+import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Compound Flash Lender that uses Balancer Pools as source of X liquidity,
 /// then deposits X on Compound to borrow whatever's necessary.
 contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
-    using FixedPointMathLib for uint256;
-    using SafeTransferLib for ERC20;
 
-    event CTokenSet(ERC20 indexed asset, ICToken indexed cToken);
+    using SafeERC20 for IERC20;
+
+    event CTokenSet(IERC20 indexed asset, ICToken indexed cToken);
 
     error NotBalancer();
     error HashMismatch();
@@ -35,21 +36,21 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
     error FailedToRedeem(Error _error);
     error FailedToLend(Error _error);
     error FailedToEnterMarket(Error _error);
-    error CTokenNotFound(ERC20 _asset);
+    error CTokenNotFound(IERC20 _asset);
     error InvalidMarket();
 
     IFlashLoaner public immutable balancer;
     IComptroller public immutable comptroller;
-    WETH public immutable nativeToken;
-    ERC20 public immutable intermediateToken;
+    IWETH9 public immutable nativeToken;
+    IERC20 public immutable intermediateToken;
 
-    mapping(ERC20 token => ICToken cToken) public cTokens;
+    mapping(IERC20 token => ICToken cToken) public cTokens;
 
     bytes32 private flashLoanDataHash;
 
     constructor(Registry reg, string memory _name) {
         (balancer, comptroller, nativeToken, intermediateToken) =
-            abi.decode(reg.get(_name), (IFlashLoaner, IComptroller, WETH, ERC20));
+            abi.decode(reg.get(_name), (IFlashLoaner, IComptroller, IWETH9, IERC20));
     }
 
     function update() external {
@@ -59,16 +60,16 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
 
             if (!_isListed(cToken)) continue;
 
-            (bool isNative, ERC20 token) = _underlying(cToken);
-            cTokens[ERC20(token)] = cToken;
-            if (!isNative) ERC20(token).safeApprove(address(cToken), type(uint256).max);
-            emit CTokenSet(ERC20(token), cToken);
+            (bool isNative, IERC20 token) = _underlying(cToken);
+            cTokens[IERC20(token)] = cToken;
+            if (!isNative) IERC20(token).forceApprove(address(cToken), type(uint256).max);
+            emit CTokenSet(IERC20(token), cToken);
         }
     }
 
-    function _underlying(ICToken cToken) internal view returns (bool, ERC20) {
+    function _underlying(ICToken cToken) internal view returns (bool, IERC20) {
         try cToken.underlying() returns (address token) {
-            return (false, ERC20(token));
+            return (false, IERC20(token));
         } catch {
             return (true, nativeToken);
         }
@@ -78,11 +79,11 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
         (isNative,) = _underlying(cToken);
     }
 
-    function setCToken(ERC20 asset, ICToken cToken) external {
+    function setCToken(IERC20 asset, ICToken cToken) external {
         if (!_isListed(cToken)) revert InvalidMarket();
 
         cTokens[asset] = cToken;
-        if (asset != nativeToken) asset.safeApprove(address(cToken), type(uint256).max);
+        if (asset != nativeToken) asset.forceApprove(address(cToken), type(uint256).max);
         emit CTokenSet(asset, cToken);
     }
 
@@ -90,14 +91,16 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
     function maxFlashLoan(address asset) public view returns (uint256) {
         // Optimistically assume that balancer has enough liquidity of the intermediate token
         // Each compound fork has a different oracle, so it'd be hard to get the exact amount that we can borrow
-        return ERC20(asset).balanceOf(address(_cToken(ERC20(asset))));
+        return IERC20(asset).balanceOf(address(_cToken(IERC20(asset))));
     }
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
         uint256 max = maxFlashLoan(asset);
         require(max > 0, "Unsupported currency");
-        uint256 fee = amount.mulWadUp(balancer.getProtocolFeesCollector().getFlashLoanFeePercentage());
+        uint256 fee = Math.mulDiv(
+            amount, balancer.getProtocolFeesCollector().getFlashLoanFeePercentage(), WAD, Math.Rounding.Ceil
+        );
         // If Balancer ever charges a fee, we can't repay it with the flash loan, so this wrapper becomes useless
         return amount >= max || fee > 0 ? type(uint256).max : 0;
     }
@@ -123,7 +126,7 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
         if (keccak256(params) != flashLoanDataHash) revert HashMismatch();
         delete flashLoanDataHash;
 
-        (ERC20 asset, uint256 amount, bytes memory data) = abi.decode(params, (ERC20, uint256, bytes));
+        (IERC20 asset, uint256 amount, bytes memory data) = abi.decode(params, (IERC20, uint256, bytes));
 
         uint256 intermediateAmount = amounts[0];
         ICToken cToken = _cToken(asset);
@@ -177,7 +180,7 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
         if (_error != Error.NO_ERROR) revert FailedToRedeem(_error);
     }
 
-    function _cToken(ERC20 asset) internal view returns (ICToken cToken) {
+    function _cToken(IERC20 asset) internal view returns (ICToken cToken) {
         cToken = cTokens[asset];
         if (cToken == ICToken(address(0))) revert CTokenNotFound(asset);
     }

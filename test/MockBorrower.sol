@@ -3,19 +3,18 @@ pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
 import "src/BaseWrapper.sol";
-import { TransferHelper, ERC20 } from "src/utils/TransferHelper.sol";
 
 contract LoanReceiver {
-    using TransferHelper for address;
+    using SafeERC20 for IERC20;
 
     function retrieve(address asset) external {
-        asset.safeTransfer(msg.sender, ERC20(asset).balanceOf(address(this)));
+        IERC20(asset).safeTransfer(msg.sender, IERC20(asset).balanceOf(address(this)));
     }
 }
 
 /// @dev Mock flash loan borrower. It allows to examine the state of the borrower during the callback.
 contract MockBorrower {
-    using TransferHelper for address;
+    using SafeERC20 for IERC20;
 
     bytes32 public constant ERC3156PP_CALLBACK_SUCCESS = keccak256("ERC3156PP_CALLBACK_SUCCESS");
     IERC7399 lender;
@@ -52,8 +51,8 @@ contract MockBorrower {
         flashAmount = amount;
         flashFee = fee;
         loanReceiver.retrieve(asset);
-        flashBalance = ERC20(asset).balanceOf(address(this));
-        asset.safeTransfer(paymentReceiver, amount + fee);
+        flashBalance = IERC20(asset).balanceOf(address(this));
+        IERC20(asset).safeTransfer(paymentReceiver, amount + fee);
 
         return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
     }
@@ -100,7 +99,7 @@ contract MockBorrower {
 
         flashBorrow(asset, amount * 2);
 
-        ERC20(asset).transfer(paymentReceiver, amount + fee);
+        IERC20(asset).safeTransfer(paymentReceiver, amount + fee);
 
         // flashBorrow will have initialized these
         flashAmount += amount;
@@ -128,8 +127,8 @@ contract MockBorrower {
         flashAmount = amount;
         flashFee = fee;
         loanReceiver.retrieve(asset);
-        flashBalance = ERC20(asset).balanceOf(address(this));
-        ERC20(asset).transfer(paymentReceiver, amount + fee);
+        flashBalance = IERC20(asset).balanceOf(address(this));
+        IERC20(asset).safeTransfer(paymentReceiver, amount + fee);
 
         return "";
     }

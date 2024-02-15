@@ -7,7 +7,7 @@ import { console2 } from "forge-std/console2.sol";
 
 import { Registry } from "lib/registry/src/Registry.sol";
 
-import { SiloWrapper, IFlashLoaner, ISiloLens, ERC20 } from "../src/silo/SiloWrapper.sol";
+import { SiloWrapper, IFlashLoaner, ISiloLens, IERC20 } from "../src/silo/SiloWrapper.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract SiloDeploy is Script {
@@ -18,7 +18,7 @@ contract SiloDeploy is Script {
 
         ISiloLens lens = ISiloLens(0x07b94eB6AaD663c4eaf083fBb52928ff9A15BE47);
         IFlashLoaner balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
-        ERC20 intermediateToken = ERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // WETH
+        IERC20 intermediateToken = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // IWETH9
 
         console2.log("lens: %s", address(lens));
         console2.log("balancer: %s", address(balancer));
