@@ -7,4 +7,6 @@ interface IPoolAddressesProviderV3 {
     function getPool() external view returns (address);
 
     function getPoolDataProvider() external view returns (IPoolDataProvider);
+
+    function getACLManager() external view returns (address);
 }
