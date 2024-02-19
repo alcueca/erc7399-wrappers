@@ -39,7 +39,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         provider = IPoolAddressesProviderV2(0xd05e3E715d945B59290df0ae8eF85c1BdB684744);
         dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
 
-        Registry registry = new Registry(address(this));
+        Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set(
             "AaveV2Wrapper",
             abi.encode(

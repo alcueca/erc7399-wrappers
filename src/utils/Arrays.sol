@@ -12,4 +12,10 @@ library Arrays {
         arr = new address[](1);
         arr[0] = a;
     }
+
+    function toArray(address a, address b) internal pure returns (address[] memory arr) {
+        arr = new address[](2);
+        arr[0] = a;
+        arr[1] = b;
+    }
 }

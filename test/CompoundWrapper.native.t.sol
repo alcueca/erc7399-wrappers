@@ -50,7 +50,7 @@ contract CompoundWrapperTest is PRBTest, StdCheats {
         nativeToken = IWETH9(payable(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2));
         intermediateToken = nativeToken;
 
-        Registry registry = new Registry(address(this));
+        Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set("CompoundWrapper", abi.encode(balancer, comptroller, nativeToken, intermediateToken));
 
         wrapper = new CompoundWrapper(registry, "CompoundWrapper");

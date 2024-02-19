@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
@@ -12,10 +12,10 @@ contract Registry is AccessControl {
 
     mapping(string key => bytes value) public get;
 
-    constructor(address owner, address[] memory users) {
-        _grantRole(DEFAULT_ADMIN_ROLE, owner);
-
-        _grantRole(USER, owner);
+    constructor(address[] memory owners, address[] memory users) {
+        for (uint256 i = 0; i < owners.length; i++) {
+            _grantRole(DEFAULT_ADMIN_ROLE, owners[i]);
+        }
         for (uint256 i = 0; i < users.length; i++) {
             _grantRole(USER, users[i]);
         }

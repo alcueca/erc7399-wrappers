@@ -50,7 +50,7 @@ contract MoonwellWrapperTest is PRBTest, StdCheats {
         nativeToken = IWETH9(payable(0x4200000000000000000000000000000000000006));
         intermediateToken = IERC20(0x4200000000000000000000000000000000000006);
 
-        Registry registry = new Registry(address(this));
+        Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set("MoonwellWrapper", abi.encode(balancer, comptroller, nativeToken, intermediateToken));
 
         wrapper = new CompoundWrapper(registry, "MoonwellWrapper");
