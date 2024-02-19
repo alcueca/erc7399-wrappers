@@ -2,7 +2,7 @@
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.19;
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { IFlashLoanRecipient } from "../balancer/interfaces/IFlashLoanRecipient.sol";
 import { IFlashLoaner } from "../balancer/interfaces/IFlashLoaner.sol";
@@ -50,7 +50,7 @@ contract CompoundWrapper is BaseWrapper, IFlashLoanRecipient {
 
     constructor(Registry reg, string memory _name) {
         (balancer, comptroller, nativeToken, intermediateToken) =
-            abi.decode(reg.get(_name), (IFlashLoaner, IComptroller, IWETH9, IERC20));
+            abi.decode(reg.getSafe(_name), (IFlashLoaner, IComptroller, IWETH9, IERC20));
     }
 
     function update() external {

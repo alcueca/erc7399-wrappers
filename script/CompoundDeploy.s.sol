@@ -5,7 +5,7 @@ import { Script } from "forge-std/Script.sol";
 
 import { console2 } from "forge-std/console2.sol";
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { CompoundWrapper } from "../src/compound/CompoundWrapper.sol";
 

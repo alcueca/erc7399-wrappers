@@ -5,12 +5,12 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { MockBorrower } from "./MockBorrower.sol";
+import { MockBorrower, IERC7399 } from "./MockBorrower.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { PermissionedAaveWrapper, AaveWrapper } from "../src/aave/PermissionedAaveWrapper.sol";
 import { Arrays } from "src/utils/Arrays.sol";
@@ -46,8 +46,9 @@ contract PermissionedAaveWrapperTest is PRBTest, StdCheats {
             "AaveV3Wrapper", abi.encode(provider.getPool(), address(provider), provider.getPoolDataProvider(), false)
         );
 
-        wrapper = new PermissionedAaveWrapper(owner, registry, "AaveV3");
-        borrower = new MockBorrower(wrapper);
+        borrower = new MockBorrower(IERC7399(address(0)));
+        wrapper = new PermissionedAaveWrapper(owner, address(borrower), registry, "AaveV3");
+        borrower.setLender(wrapper);
     }
 
     /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
@@ -63,10 +64,6 @@ contract PermissionedAaveWrapperTest is PRBTest, StdCheats {
 
     function test_flashLoan() external {
         console2.log("test_flashLoan");
-        bytes32 role = wrapper.BORROWER();
-        vm.prank(owner);
-        wrapper.grantRole(role, address(borrower));
-
         vm.mockCall(
             provider.getACLManager(),
             abi.encodeWithSelector(IACLManager.isFlashBorrower.selector, wrapper),
@@ -114,6 +111,8 @@ contract PermissionedAaveWrapperTest is PRBTest, StdCheats {
 
     function test_flashLoan_permissions() external {
         console2.log("test_flashLoan_permissions");
+        borrower = new MockBorrower(wrapper);
+
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector, borrower, wrapper.BORROWER()

@@ -27,8 +27,12 @@ contract MockBorrower {
     uint256 public flashFee;
 
     constructor(IERC7399 lender_) {
-        lender = lender_;
+        setLender(lender_);
         loanReceiver = new LoanReceiver();
+    }
+
+    function setLender(IERC7399 lender_) public {
+        lender = lender_;
     }
 
     /// @dev Flash loan callback
