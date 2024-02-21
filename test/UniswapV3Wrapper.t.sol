@@ -6,15 +6,18 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { MockBorrower } from "./MockBorrower.sol";
 import { UniswapV3Wrapper } from "../src/uniswapV3/UniswapV3Wrapper.sol";
 import { IUniswapV3Factory } from "../src/uniswapV3/interfaces/IUniswapV3Factory.sol";
+import { Arrays } from "src/utils/Arrays.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract UniswapV3WrapperTest is PRBTest, StdCheats {
+    using Arrays for *;
+
     UniswapV3Wrapper internal wrapper;
     MockBorrower internal borrower;
     address internal usdc;
@@ -38,7 +41,7 @@ contract UniswapV3WrapperTest is PRBTest, StdCheats {
         weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
         wbtc = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
-        Registry registry = new Registry(address(this));
+        Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set("UniswapV3Wrapper", abi.encode(address(factory), weth, usdc, usdt));
         wrapper = new UniswapV3Wrapper(registry);
         borrower = new MockBorrower(wrapper);

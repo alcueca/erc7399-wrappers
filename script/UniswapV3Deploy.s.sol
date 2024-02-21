@@ -5,7 +5,7 @@ import { Script } from "forge-std/Script.sol";
 
 import { console2 } from "forge-std/console2.sol";
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { UniswapV3Wrapper } from "../src/uniswapV3/UniswapV3Wrapper.sol";
 

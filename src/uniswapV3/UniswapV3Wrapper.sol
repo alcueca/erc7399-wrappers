@@ -2,7 +2,7 @@
 // Thanks to sunnyRK, yashnaman & ultrasecr.eth
 pragma solidity ^0.8.19;
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { IUniswapV3FlashCallback } from "./interfaces/callback/IUniswapV3FlashCallback.sol";
 import { IUniswapV3Pool } from "./interfaces/IUniswapV3Pool.sol";
@@ -33,7 +33,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
         // @param weth_ Weth contract used in Uniswap v3 Pairs
         // @param usdc_ usdc contract used in Uniswap v3 Pairs
         // @param usdt_ usdt contract used in Uniswap v3 Pairs
-        (factory, weth, usdc, usdt) = abi.decode(reg.get("UniswapV3Wrapper"), (address, address, address, address));
+        (factory, weth, usdc, usdt) = abi.decode(reg.getSafe("UniswapV3Wrapper"), (address, address, address, address));
     }
 
     /**

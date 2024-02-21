@@ -9,7 +9,7 @@ import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/ex
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { IWETH9 } from "src/dependencies/IWETH9.sol";
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 import { Arrays } from "src/utils/Arrays.sol";
 
 import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
@@ -50,7 +50,7 @@ contract CompoundWrapperTest is PRBTest, StdCheats {
         nativeToken = IWETH9(payable(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2));
         intermediateToken = nativeToken;
 
-        Registry registry = new Registry(address(this));
+        Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set("CompoundWrapper", abi.encode(balancer, comptroller, nativeToken, intermediateToken));
 
         wrapper = new CompoundWrapper(registry, "CompoundWrapper");

@@ -4,7 +4,7 @@ pragma solidity >=0.8.19 <=0.9.0;
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { AaveWrapper } from "src/aave/AaveWrapper.sol";
 import { IPoolAddressesProviderV3 } from "src/aave/interfaces/IPoolAddressesProviderV3.sol";

@@ -5,7 +5,7 @@ import { Script } from "forge-std/Script.sol";
 
 import { console2 } from "forge-std/console2.sol";
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { CompoundWrapper } from "../src/compound/CompoundWrapper.sol";
 
@@ -23,7 +23,7 @@ contract CompoundDeploy is Script {
 
     mapping(uint256 network => DeployParams) public tokens;
 
-    Registry internal registry; /*  = Registry(0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c) */
+    Registry internal registry = Registry(0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c);
 
     constructor() {
         tokens[1] = DeployParams({
@@ -46,8 +46,6 @@ contract CompoundDeploy is Script {
         console2.log("Deploying as %s", msg.sender);
 
         vm.startBroadcast();
-        registry = new Registry(msg.sender);
-
         DeployParams memory deployParams = tokens[block.chainid];
         require(
             deployParams.balancer != address(0),

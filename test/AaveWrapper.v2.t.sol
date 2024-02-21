@@ -5,7 +5,7 @@ import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { Registry } from "lib/registry/src/Registry.sol";
+import { Registry } from "src/Registry.sol";
 
 import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -39,7 +39,7 @@ contract AaveWrapperTest is PRBTest, StdCheats {
         provider = IPoolAddressesProviderV2(0xd05e3E715d945B59290df0ae8eF85c1BdB684744);
         dai = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
 
-        Registry registry = new Registry(address(this));
+        Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set(
             "AaveV2Wrapper",
             abi.encode(
