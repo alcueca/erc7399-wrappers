@@ -5,6 +5,7 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 
 import { Registry } from "src/Registry.sol";
+import { RegistryDeploy } from "./RegistryDeploy.s.sol";
 
 import { PermissionedAaveWrapper } from "src/aave/PermissionedAaveWrapper.sol";
 import { IPoolAddressesProviderV3 } from "src/aave/interfaces/IPoolAddressesProviderV3.sol";
@@ -26,7 +27,7 @@ contract ContangoAaveDeploy is Script {
 
     bytes32 public constant SALT = keccak256("ultrasecr.eth");
 
-    Registry internal registry = Registry(0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c);
+    Registry internal registry = Registry(0xa348320114210b8F4eaF1b0795aa8F70803a93EA);
 
     address public constant TIMELOCK = 0xc0939a4Ed0129bc5162F6f693935B3F72a46a90D;
     address public constant CONTANGO = 0x6Cae28b3D09D8f8Fc74ccD496AC986FC84C0C24E;
@@ -57,17 +58,26 @@ contract ContangoAaveDeploy is Script {
         bytes memory paramsBytes = abi.encode(pool, addressProvider, poolDataProvider, isV2);
         string memory key = "AaveV3Wrapper";
         console2.log(key);
-        if (keccak256(registry.get(key)) != keccak256(paramsBytes)) {
-            console2.log("Registry need updating");
-            // vm.broadcast();
-            // vm.prank(0xfA6DaAF31F8E2498b5D4C43E59c6eDd345D951F5);
-            // registry.set(key, paramsBytes);
-            console2.logBytes(abi.encodeWithSelector(registry.set.selector, key, paramsBytes));
-        } else {
-            vm.broadcast();
-            PermissionedAaveWrapper wrapper =
-                new PermissionedAaveWrapper{ salt: SALT }(TIMELOCK, CONTANGO, registry, "AaveV3");
-            console2.log("%s deployed at: %s", key, address(wrapper));
+
+        if (address(registry).code.length == 0) {
+            console2.log("Registry not deployed");
+            RegistryDeploy deploy = new RegistryDeploy();
+            deploy.run();
         }
+
+        if (keccak256(registry.get(key)) != keccak256(paramsBytes)) {
+            console2.log("Updating registry");
+            vm.broadcast();
+            registry.set(key, paramsBytes);
+        }
+
+        vm.broadcast();
+        PermissionedAaveWrapper wrapper =
+            new PermissionedAaveWrapper{ salt: SALT }(TIMELOCK, CONTANGO, registry, "AaveV3");
+        console2.log("%s deployed at: %s", key, address(wrapper));
+
+        require(wrapper.ADDRESSES_PROVIDER() == address(addressProvider), "AddressesProvider not set");
+        require(wrapper.POOL() == pool, "Pool not set");
+        require(address(wrapper.dataProvider()) == poolDataProvider, "PoolDataProvider not set");
     }
 }

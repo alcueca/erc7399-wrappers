@@ -14,11 +14,11 @@ contract RegistryDeploy is Script {
     address constant ULTRASECRETH = 0xAA62cBC86d65917a44EF1C1fae3AAB55fbd773C5;
     address constant ALCUECA = 0xbb807E3E765a9487F5F423C3555b329E755c1EEE;
 
-    function run() public {
+    function run() public returns (Registry registry) {
         console2.log("Deploying as %s", msg.sender);
 
         vm.startBroadcast();
-        Registry registry =
+        registry =
             new Registry{ salt: SALT }(Arrays.toArray(ULTRASECRETH, ALCUECA), Arrays.toArray(ALCUECA, ULTRASECRETH));
         console2.log("Registry deployed at %s", address(registry));
         vm.stopBroadcast();
