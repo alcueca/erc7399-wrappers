@@ -1,4 +1,3 @@
-@prb/test/=lib/prb-test/src/
 forge-std/=lib/forge-std/src/
 erc7399/=lib/erc7399/src/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { PRBTest } from "@prb/test/PRBTest.sol";
+import { Test } from "forge-std/Test.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
@@ -12,7 +12,7 @@ import { MockBorrower } from "./MockBorrower.sol";
 
 import { BaseWrapper } from "src/BaseWrapper.sol";
 
-contract BaseWrapperTest is PRBTest, StdCheats {
+contract BaseWrapperTest is Test {
     using SafeERC20 for IERC20;
 
     FooWrapper internal wrapper;

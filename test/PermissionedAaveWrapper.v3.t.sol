@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { PRBTest } from "@prb/test/PRBTest.sol";
+import { Test } from "forge-std/Test.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
@@ -18,7 +18,7 @@ import { IPoolAddressesProviderV3 } from "../src/aave/interfaces/IPoolAddressesP
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract PermissionedAaveWrapperTest is PRBTest, StdCheats {
+contract PermissionedAaveWrapperTest is Test {
     using Arrays for *;
     using SafeERC20 for IERC20;
 
