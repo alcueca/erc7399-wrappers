@@ -3,17 +3,17 @@ name: "CI"
 env:
   API_KEY_ALCHEMY: ${{ secrets.API_KEY_ALCHEMY }}
   API_KEY_INFURA: ${{ secrets.API_KEY_INFURA }}
-  ARBITRUM_RPC: "https://arb-mainnet.g.alchemy.com/v2/$API_KEY_ALCHEMY"
-  AVALANCHE_RPC: "https://avalanche-mainnet.infura.io/v3/$API_KEY_INFURA"
+  ARBITRUM_RPC: "https://arb-mainnet.g.alchemy.com/v2/${{ secrets.API_KEY_ALCHEMY }}"
+  AVALANCHE_RPC: "https://avalanche-mainnet.infura.io/v3/${{ secrets.API_KEY_INFURA }}"
   BASE_RPC: "https://base.drpc.org"
   BNB_RPC: "https://bsc-dataseed.binance.org"
   GNOSIS_RPC: "https://rpc.gnosischain.com"
-  GOERLI_RPC: "https://goerli.infura.io/v3/$API_KEY_INFURA"
+  GOERLI_RPC: "https://goerli.infura.io/v3/${{ secrets.API_KEY_INFURA }}"
   LOCALHOST_RPC: "http://127.0.0.1:8545"
-  MAINNET_RPC: "https://eth-mainnet.g.alchemy.com/v2/$API_KEY_ALCHEMY"
-  OPTIMISM_RPC: "https://optimism-mainnet.infura.io/v3/$API_KEY_INFURA"
-  POLYGON_RPC: "https://polygon-mainnet.infura.io/v3/$API_KEY_INFURA"
-  SEPOLIA_RPC: "https://sepolia.infura.io/v3/$API_KEY_INFURA"
+  MAINNET_RPC: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.API_KEY_ALCHEMY }}"
+  OPTIMISM_RPC: "https://optimism-mainnet.infura.io/v3/${{ secrets.API_KEY_INFURA }}"
+  POLYGON_RPC: "https://polygon-mainnet.infura.io/v3/${{ secrets.API_KEY_INFURA }}"
+  SEPOLIA_RPC: "https://sepolia.infura.io/v3/${{ secrets.API_KEY_INFURA }}"
   FOUNDRY_PROFILE: "ci"
 
 on:
