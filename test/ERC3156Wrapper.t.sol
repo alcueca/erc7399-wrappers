@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
-import { PRBTest } from "@prb/test/PRBTest.sol";
+import { Test } from "forge-std/Test.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 import { IERC3156FlashLender } from "lib/erc3156/contracts/interfaces/IERC3156FlashLender.sol";
@@ -14,7 +14,7 @@ import { ERC3156Wrapper } from "../src/erc3156/ERC3156Wrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract ERC3156WrapperTest is PRBTest, StdCheats {
+contract ERC3156WrapperTest is Test {
     using SafeERC20 for IERC20;
 
     ERC3156Wrapper internal wrapper;
