@@ -16,6 +16,7 @@
   src = "src"
   test = "test"
   evm_version = 'london'
+  verbosity = 2
 
 [profile.ci]
   fuzz = { runs = 10_000 }
@@ -23,14 +24,14 @@
 
 [etherscan]
   arbitrum_one = { key = "${API_KEY_ARBISCAN}", chain = 42161 }
-  avalanche = { key = "${API_KEY_SNOWTRACE}", chain = 43114 }
-  bnb_smart_chain = { key = "${ API_KEY_BSCSCAN}", chain = 56 }
+  # avalanche = { key = "${API_KEY_SNOWTRACE}", chain = 43114 }
+  # bnb_smart_chain = { key = "${ API_KEY_BSCSCAN}", chain = 56 }
   gnosis_chain = { key = "${API_KEY_GNOSISSCAN}", chain = 100 }
-  goerli = { key = "${API_KEY_ETHERSCAN}", chain = 5 }
+  # goerli = { key = "${API_KEY_ETHERSCAN}", chain = 5 }
   mainnet = { key = "${API_KEY_ETHERSCAN}", chain = 1 }
   optimism = { key = "${API_KEY_OPTIMISTIC_ETHERSCAN}", chain = 10 }
   polygon = { key = "${API_KEY_POLYGONSCAN}", chain = 137 }
-  sepolia = { key = "${API_KEY_ETHERSCAN}", chain = 58008 }
+  # sepolia = { key = "${API_KEY_ETHERSCAN}", chain = 58008 }
 
 [fmt]
   bracket_spacing = true
@@ -44,14 +45,14 @@
 
 [rpc_endpoints]
   arbitrum_one = "${ARBITRUM_RPC}"
-  avalanche = "${AVALANCHE_RPC}"
+  # avalanche = "${AVALANCHE_RPC}"
   base = "${BASE_RPC}"
-  bnb_smart_chain = "${BNB_RPC}"
+  # bnb_smart_chain = "${BNB_RPC}"
   gnosis = "${GNOSIS_RPC}"
-  goerli = "${GOERLI_RPC}"
+  # goerli = "${GOERLI_RPC}"
   localhost = "http://127.0.0.1:8545"
   mainnet = "${MAINNET_RPC}"
   optimism = "${OPTIMISM_RPC}"
   polygon = "${POLYGON_RPC}"
-  sepolia = "${SEPOLIA_RPC}"
+  # sepolia = "${SEPOLIA_RPC}"
 
