@@ -38,6 +38,7 @@ Contracts are deployed at the same address for all supported networks.
 | [BalancerWrapper](src/balancer/BalancerWrapper.sol)    | Balancer v2         | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis |
 | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol) | Uniswap v3          | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon                   |
 | [CompoundWrapper](src/compound/CompoundWrapper.sol)    | Balancer + Moonwell | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base                                              |
+| [CompoundWrapper](src/compound/CompoundWrapper.sol)    | Balancer + Sonne    | 0x6412183C579a276f467ad38468D19CC8f1F2b5cb | Optimism                                          |
 | [SiloWrapper](src/silo/SiloWrapper.sol)                | Balancer + Silo     | 0xecd3EA7f4ecb25bc6a862452f9cCda3E60534c8C | Arbitrum One                                      |
 | [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)    | Dolomite            | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum One                                      |
 | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)  | MorphoBlue          | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          |
