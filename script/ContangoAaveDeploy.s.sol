@@ -4,6 +4,8 @@ pragma solidity >=0.8.19 <=0.9.0;
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 
+import "./Network.sol";
+
 import { Registry } from "src/Registry.sol";
 import { RegistryDeploy } from "./RegistryDeploy.s.sol";
 
@@ -12,15 +14,6 @@ import { IPoolAddressesProviderV3 } from "src/aave/interfaces/IPoolAddressesProv
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract ContangoAaveDeploy is Script {
-    type Network is uint256;
-
-    Network constant MAINNET = Network.wrap(1);
-    Network constant OPTIMISM = Network.wrap(10);
-    Network constant GNOSIS = Network.wrap(100);
-    Network constant POLYGON = Network.wrap(137);
-    Network constant BASE = Network.wrap(8453);
-    Network constant ARBITRUM = Network.wrap(42_161);
-
     struct AaveDeployParams {
         address addressProvider;
     }
@@ -46,7 +39,7 @@ contract ContangoAaveDeploy is Script {
     function run() public {
         console2.log("Deploying as %s", msg.sender);
 
-        Network network = Network.wrap(block.chainid);
+        Network network = currentNetwork();
         IPoolAddressesProviderV3 addressProvider = deployParams[network];
 
         require(address(addressProvider) != address(0), "No deploy params for this network");

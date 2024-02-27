@@ -6,6 +6,7 @@ out
 
 # files
 *.env
+*.envrc
 *.log
 .DS_Store
 .pnp.*
