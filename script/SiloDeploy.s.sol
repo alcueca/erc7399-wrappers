@@ -18,13 +18,19 @@ contract SiloDeploy is Script {
 
         ISiloLens lens = ISiloLens(0x07b94eB6AaD663c4eaf083fBb52928ff9A15BE47);
         IFlashLoaner balancer = IFlashLoaner(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
-        IERC20 intermediateToken = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // IWETH9
+        IWETH9Arbitrum intermediateToken = IWETH9Arbitrum(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // IWETH9
 
         console2.log("lens: %s", address(lens));
         console2.log("balancer: %s", address(balancer));
         console2.log("intermediateToken: %s", address(intermediateToken));
 
-        vm.broadcast();
-        new SiloWrapper{ salt: SALT }(lens, balancer, intermediateToken);
+        vm.startBroadcast();
+        SiloWrapper wrapper = new SiloWrapper{ salt: SALT }(lens, balancer, intermediateToken);
+        intermediateToken.depositTo{ value: 1e10 }(address(wrapper));
+        vm.stopBroadcast();
     }
+}
+
+interface IWETH9Arbitrum is IERC20 {
+    function depositTo(address to) external payable;
 }

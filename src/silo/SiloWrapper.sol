@@ -25,6 +25,8 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
     using SafeERC20 for IERC20;
 
     bool public constant COLLATERAL_ONLY = false;
+    // Silo sometimes rounds up the borrowed amount, so we need to account for that
+    uint256 public constant DUST_FEE = 1;
 
     error NotBalancer();
     error HashMismatch();
@@ -59,7 +61,7 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
             amount, balancer.getProtocolFeesCollector().getFlashLoanFeePercentage(), WAD, Math.Rounding.Ceil
         );
         // If Balancer ever charges a fee, we can't repay it with the flash loan, so this wrapper becomes useless
-        return amount >= max || fee > 0 ? type(uint256).max : 0;
+        return amount >= max || fee > 0 ? type(uint256).max : DUST_FEE;
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
@@ -91,9 +93,9 @@ contract SiloWrapper is BaseWrapper, IFlashLoanRecipient {
         silo.deposit(intermediateToken, intermediateAmount, COLLATERAL_ONLY);
         silo.borrow(asset, amount);
 
-        _bridgeToCallback(address(asset), amount, 0, data);
+        _bridgeToCallback(address(asset), amount, DUST_FEE, data);
 
-        silo.repay(asset, amount);
+        silo.repay(asset, type(uint256).max);
         silo.withdraw(intermediateToken, type(uint256).max, COLLATERAL_ONLY);
 
         intermediateToken.safeTransfer(address(balancer), intermediateAmount);
