@@ -18,7 +18,7 @@ contract ContangoAaveDeploy is Script {
         address addressProvider;
     }
 
-    bytes32 public constant SALT = keccak256("ultrasecr.eth");
+    bytes32 public constant SALT = keccak256("ultrasecr.eth-2");
 
     Registry internal registry = Registry(0xa348320114210b8F4eaF1b0795aa8F70803a93EA);
 
@@ -34,6 +34,9 @@ contract ContangoAaveDeploy is Script {
         deployParams[OPTIMISM] = IPoolAddressesProviderV3(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
         deployParams[BASE] = IPoolAddressesProviderV3(0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D);
         deployParams[GNOSIS] = IPoolAddressesProviderV3(0x36616cf17557639614c1cdDb356b1B83fc0B2132);
+        deployParams[BSC] = IPoolAddressesProviderV3(0xff75B6da14FfbbfD355Daf7a2731456b3562Ba6D);
+        deployParams[AVALANCHE] = IPoolAddressesProviderV3(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
+        deployParams[SCROLL] = IPoolAddressesProviderV3(0x69850D0B276776781C063771b161bd8894BCdD04);
     }
 
     function run() public {
@@ -66,7 +69,7 @@ contract ContangoAaveDeploy is Script {
 
         vm.broadcast();
         PermissionedAaveWrapper wrapper =
-            new PermissionedAaveWrapper{ salt: SALT }(TIMELOCK, CONTANGO, registry, "AaveV3");
+            new PermissionedAaveWrapper{ salt: SALT }(msg.sender, CONTANGO, registry, "AaveV3");
         console2.log("%s deployed at: %s", key, address(wrapper));
 
         require(wrapper.ADDRESSES_PROVIDER() == address(addressProvider), "AddressesProvider not set");
