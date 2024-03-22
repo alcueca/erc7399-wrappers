@@ -71,7 +71,15 @@ interface IPool {
         view
         returns (uint256 timestamp, uint256 reserve0Cumulative, uint256 reserve1Cumulative);
     function periodSize() external view returns (uint256);
-    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
         external;
     function poolFees() external view returns (address);
     function prices(address tokenIn, uint256 amountIn, uint256 points) external view returns (uint256[] memory);
@@ -80,7 +88,12 @@ interface IPool {
     function reserve0CumulativeLast() external view returns (uint256);
     function reserve1() external view returns (uint256);
     function reserve1CumulativeLast() external view returns (uint256);
-    function sample(address tokenIn, uint256 amountIn, uint256 points, uint256 window)
+    function sample(
+        address tokenIn,
+        uint256 amountIn,
+        uint256 points,
+        uint256 window
+    )
         external
         view
         returns (uint256[] memory);

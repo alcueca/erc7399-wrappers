@@ -45,9 +45,9 @@ contract SolidlyWrapperTest is Test {
     function test_flashFee() external {
         console2.log("test_flashFee");
         assertEqDecimal(wrapper.flashFee(usdc, 100e6), 0.050026e6, 6, "Fee not exact USDC");
-        assertEqDecimal(wrapper.flashFee(reth, 10e18), 0.030090270812437311e18, 18, "Fee not exact RETH");
+        assertEqDecimal(wrapper.flashFee(reth, 10e18), 0.03009027081243732e18, 18, "Fee not exact RETH");
         assertEqDecimal(wrapper.flashFee(weth, 0.1e18), 0.000050025012506254e18, 18, "Fee not exact IWETH9 1");
-        assertEqDecimal(wrapper.flashFee(weth, 10e18), 0.030090270812437311e18, 18, "Fee not exact IWETH9 2");
+        assertEqDecimal(wrapper.flashFee(weth, 10e18), 0.03009027081243732e18, 18, "Fee not exact IWETH9 2");
         assertEqDecimal(wrapper.flashFee(cbeth, 1e18), 0.000500250125062532e18, 18, "Fee not exact CBETH");
     }
 

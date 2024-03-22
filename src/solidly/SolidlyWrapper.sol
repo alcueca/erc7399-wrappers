@@ -2,6 +2,8 @@
 // Thanks to sunnyRK, yashnaman & ultrasecr.eth
 pragma solidity ^0.8.19;
 
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+
 import { Registry } from "src/Registry.sol";
 
 import { IPoolFactory } from "./interfaces/IPoolFactory.sol";
@@ -37,7 +39,7 @@ contract SolidlyWrapper is BaseWrapper, IPoolCallee {
     }
 
     /**
-     * @dev Get the Uniswap Pool that will be used as the source of a loan. The opposite asset will be WETH, except for
+     * @dev Get the Solidly Pool that will be used as the source of a loan. The opposite asset will be WETH, except for
      * WETH that will be usdc.
      * @param asset The loan currency.
      * @param amount The amount of assets to borrow.
@@ -66,7 +68,9 @@ contract SolidlyWrapper is BaseWrapper, IPoolCallee {
     }
 
     function _feeAmount(uint256 amount, uint256 fee) internal pure returns (uint256) {
-        return (amount * ((WAD * WAD / (WAD - (fee * 1e14))) - WAD) / WAD) + 1;
+        uint256 feeWAD = fee * 1e14;
+        uint256 derivedFee = Math.mulDiv(WAD, WAD, WAD - feeWAD, Math.Rounding.Ceil) - WAD;
+        return Math.mulDiv(amount, derivedFee, WAD, Math.Rounding.Ceil);
     }
 
     /// @inheritdoc IERC7399
