@@ -130,6 +130,7 @@ contract PendleWrapper is BaseWrapper, IFlashLoanRecipient {
         });
     }
 
+    // solhint-disable-next-line no-empty-blocks
     function _approveRepayment(address, uint256, uint256) internal override {
         // Nothing to do here
     }
