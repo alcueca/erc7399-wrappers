@@ -8,7 +8,7 @@ import { console2 } from "forge-std/console2.sol";
 import { BalancerPendleWrapper, IFlashLoaner, IPendleRouterV3 } from "../src/pendle/BalancerPendleWrapper.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
-contract PendleDeploy is Script {
+contract BalancerPendleDeploy is Script {
     bytes32 public constant SALT = keccak256("ultrasecr.eth");
 
     function run() public {

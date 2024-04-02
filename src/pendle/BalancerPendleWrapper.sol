@@ -15,11 +15,12 @@ import { WAD } from "../utils/constants.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
+import { IERC7399, IERC20 } from "../BaseWrapper.sol";
+import { BasePendleWrapper } from "./BasePendleWrapper.sol";
 
 /// @dev Pendle Flash Lender that uses Balancer Pools as source of X liquidity,
 /// then deposits X on Pendle to borrow whatever's necessary.
-contract BalancerPendleWrapper is BaseWrapper, IFlashLoanRecipient {
+contract BalancerPendleWrapper is BasePendleWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
 
@@ -30,13 +31,11 @@ contract BalancerPendleWrapper is BaseWrapper, IFlashLoanRecipient {
     error HashMismatch();
 
     IFlashLoaner public immutable balancer;
-    IPendleRouterV3 public immutable pendleRouter;
 
     bytes32 private flashLoanDataHash;
 
-    constructor(IFlashLoaner _balancer, IPendleRouterV3 _pendleRouter) {
+    constructor(IFlashLoaner _balancer, IPendleRouterV3 _pendleRouter) BasePendleWrapper(_pendleRouter) {
         balancer = _balancer;
-        pendleRouter = _pendleRouter;
     }
 
     /// @inheritdoc IERC7399
@@ -79,55 +78,10 @@ contract BalancerPendleWrapper is BaseWrapper, IFlashLoanRecipient {
 
         IERC20 underlying = IERC20(assets[0]);
         uint256 amount = amounts[0];
-        IPYieldToken yt = IPPrincipalToken(address(asset)).YT();
 
-        underlying.forceApprove(address(pendleRouter), amount);
-        (uint256 netPyOut,) =
-            pendleRouter.mintPyFromToken(address(this), yt, 0, _createTokenInputStruct(underlying, amount));
-
-        _bridgeToCallback(address(asset), amount, 0, data);
-
-        asset.forceApprove(address(pendleRouter), netPyOut);
-        yt.forceApprove(address(pendleRouter), netPyOut);
-        pendleRouter.redeemPyToToken(address(this), yt, netPyOut, _createTokenOutputStruct(underlying, 0));
+        _handleFlashLoan(underlying, asset, amount, 0, data);
 
         underlying.safeTransfer(address(balancer), amount);
-    }
-
-    function _createTokenInputStruct(
-        IERC20 tokenIn,
-        uint256 netTokenIn
-    )
-        internal
-        pure
-        returns (IPendleRouterV3.TokenInput memory)
-    {
-        IPendleRouterV3.SwapData memory emptySwap;
-        return IPendleRouterV3.TokenInput({
-            tokenIn: address(tokenIn),
-            netTokenIn: netTokenIn,
-            tokenMintSy: address(tokenIn),
-            pendleSwap: address(0),
-            swapData: emptySwap
-        });
-    }
-
-    function _createTokenOutputStruct(
-        IERC20 tokenOut,
-        uint256 minTokenOut
-    )
-        internal
-        pure
-        returns (IPendleRouterV3.TokenOutput memory)
-    {
-        IPendleRouterV3.SwapData memory emptySwap;
-        return IPendleRouterV3.TokenOutput({
-            tokenOut: address(tokenOut),
-            minTokenOut: minTokenOut,
-            tokenRedeemSy: address(tokenOut),
-            pendleSwap: address(0),
-            swapData: emptySwap
-        });
     }
 
     // solhint-disable-next-line no-empty-blocks
