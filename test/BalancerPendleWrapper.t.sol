@@ -11,16 +11,16 @@ import { Arrays } from "src/utils/Arrays.sol";
 
 import { IFlashLoaner } from "../src/balancer/interfaces/IFlashLoaner.sol";
 import { MockBorrower } from "./MockBorrower.sol";
-import { PendleWrapper, IPendleRouterV3 } from "../src/pendle/PendleWrapper.sol";
+import { BalancerPendleWrapper, IPendleRouterV3 } from "../src/pendle/BalancerPendleWrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract PendleWrapperTest is Test {
+contract BalancerPendleWrapperTest is Test {
     using Arrays for uint256;
     using Arrays for address;
     using SafeERC20 for IERC20;
 
-    PendleWrapper internal wrapper;
+    BalancerPendleWrapper internal wrapper;
     MockBorrower internal borrower;
     address internal token;
     IFlashLoaner internal balancer;
@@ -41,7 +41,7 @@ contract PendleWrapperTest is Test {
         pendleRouter = IPendleRouterV3(0x00000000005BBB0EF59571E58418F9a4357b68A0);
         token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
 
-        wrapper = new PendleWrapper(balancer, pendleRouter);
+        wrapper = new BalancerPendleWrapper(balancer, pendleRouter);
         borrower = new MockBorrower(wrapper);
     }
 
@@ -94,11 +94,11 @@ contract PendleWrapperTest is Test {
     }
 
     function test_receiveFlashLoan_permissions() public {
-        vm.expectRevert(PendleWrapper.NotBalancer.selector);
+        vm.expectRevert(BalancerPendleWrapper.NotBalancer.selector);
         wrapper.receiveFlashLoan(address(token).toArray(), uint256(1e18).toArray(), uint256(0).toArray(), "");
 
         vm.prank(address(balancer));
-        vm.expectRevert(PendleWrapper.HashMismatch.selector);
+        vm.expectRevert(BalancerPendleWrapper.HashMismatch.selector);
         wrapper.receiveFlashLoan(address(token).toArray(), uint256(1e18).toArray(), uint256(0).toArray(), "");
     }
 }

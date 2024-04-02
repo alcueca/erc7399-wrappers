@@ -5,7 +5,7 @@ import { Script } from "forge-std/Script.sol";
 
 import { console2 } from "forge-std/console2.sol";
 
-import { PendleWrapper, IFlashLoaner, IPendleRouterV3 } from "../src/pendle/PendleWrapper.sol";
+import { BalancerPendleWrapper, IFlashLoaner, IPendleRouterV3 } from "../src/pendle/BalancerPendleWrapper.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract PendleDeploy is Script {
@@ -21,7 +21,7 @@ contract PendleDeploy is Script {
         console2.log("balancer: %s", address(balancer));
 
         vm.broadcast();
-        PendleWrapper wrapper = new PendleWrapper{ salt: SALT }(balancer, pendleRouter);
-        console2.log("wrapper: %s", address(wrapper));
+        BalancerPendleWrapper wrapper = new BalancerPendleWrapper{ salt: SALT }(balancer, pendleRouter);
+        console2.log("BalancerPendleWrapper: %s", address(wrapper));
     }
 }

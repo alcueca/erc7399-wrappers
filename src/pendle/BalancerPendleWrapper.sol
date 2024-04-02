@@ -19,7 +19,7 @@ import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Pendle Flash Lender that uses Balancer Pools as source of X liquidity,
 /// then deposits X on Pendle to borrow whatever's necessary.
-contract PendleWrapper is BaseWrapper, IFlashLoanRecipient {
+contract BalancerPendleWrapper is BaseWrapper, IFlashLoanRecipient {
     using Arrays for uint256;
     using Arrays for address;
 
