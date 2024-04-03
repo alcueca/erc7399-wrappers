@@ -42,6 +42,7 @@ Contracts are deployed at the same address for all supported networks.
 | [SiloWrapper](src/silo/SiloWrapper.sol)                | Balancer + Silo     | 0x0F9104Fec1a5C91e63632E215e8F5c57C8f32c77 | Arbitrum One                                      |
 | [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)    | Dolomite            | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum One                                      |
 | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)  | MorphoBlue          | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          |
+| [AlgebraWrapper](src/dolomite/DolomiteWrapper.sol)     | Camelot             | 0x5E8820B2832aD8451f65Fa2CCe2F3Cef29016D0d | Arbitrum One                                      |
 
 When a contract requires constructor parameters which vary per network, these are supplied by the
 [Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported
