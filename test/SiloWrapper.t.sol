@@ -105,6 +105,8 @@ contract SiloWrapperTest is Test {
         assertEq(borrower.flashFee(), fee);
 
         assertEq(intermediateToken.balanceOf(address(wrapper)), dust - 1, "Too much dust spent");
+
+        console2.log("Silo: ", borrower.usedGas());
     }
 
     function test_receiveFlashLoan_permissions() public {

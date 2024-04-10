@@ -115,6 +115,8 @@ contract AlgebraPendleWrapperTest is Test {
         wrapper.retrieve(IERC20(token), treasury, 0.001e18);
         assertEqDecimal(IERC20(token).balanceOf(treasury), 0.001e18, 18, "Fee not transferred");
         assertEqDecimal(IERC20(token).balanceOf(address(wrapper)), 0, 18, "Fee still in wrapper");
+
+        console2.log("Algebra + Pendle: ", borrower.usedGas());
     }
 
     function testRetrievePermissions() public {

@@ -77,6 +77,8 @@ contract AaveWrapperTest is Test {
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
             // borrowed
         assertEq(borrower.flashFee(), fee);
+
+        console2.log("Aave v3: ", borrower.usedGas());
     }
 
     function test_executeOperation_permissions() public {

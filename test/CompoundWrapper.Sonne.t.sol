@@ -86,6 +86,8 @@ contract SonneWrapperTest is Test {
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
         // borrowed
         assertEq(borrower.flashFee(), fee);
+
+        console2.log("Compound/Sonne: ", borrower.usedGas());
     }
 
     function test_receiveFlashLoan_permissions() public {

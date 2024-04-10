@@ -98,6 +98,8 @@ contract UniswapV3WrapperTest is Test {
         // The amount we transferred to pay for fees, plus the amount we borrowed
         assertEq(borrower.flashBalance(), loan + fee, "flashBalance");
         assertEq(borrower.flashFee(), fee, "flashFee");
+
+        console2.log("Uniswap v3: ", borrower.usedGas());
     }
 
     function test_uniswapV3FlashCallback_permissions() public {

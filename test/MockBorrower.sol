@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
 import "src/BaseWrapper.sol";
+import { console2 } from "forge-std/console2.sol";
 
 contract LoanReceiver {
     using SafeERC20 for IERC20;
@@ -25,6 +26,8 @@ contract MockBorrower {
     address public flashAsset;
     uint256 public flashAmount;
     uint256 public flashFee;
+    uint256 public innerGas;
+    uint256 public usedGas;
 
     constructor(IERC7399 lender_) {
         setLender(lender_);
@@ -47,6 +50,7 @@ contract MockBorrower {
         external
         returns (bytes memory)
     {
+        uint256 startingGas = gasleft();
         require(msg.sender == address(lender), "MockBorrower: Untrusted lender");
         require(initiator == address(this), "MockBorrower: External loan initiator");
 
@@ -56,6 +60,8 @@ contract MockBorrower {
         flashFee = fee;
         loanReceiver.retrieve(asset);
         flashBalance = IERC20(asset).balanceOf(address(this));
+
+        innerGas = startingGas - gasleft(); // Transferring the repayment is counted towards the flash loan cost
         IERC20(asset).safeTransfer(paymentReceiver, amount + fee);
 
         return abi.encode(ERC3156PP_CALLBACK_SUCCESS);
@@ -137,8 +143,11 @@ contract MockBorrower {
         return "";
     }
 
-    function flashBorrow(address asset, uint256 amount) public returns (bytes memory) {
-        return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoan);
+    function flashBorrow(address asset, uint256 amount) public returns (bytes memory out) {
+        uint256 startingGas = gasleft();
+        out = lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoan);
+        uint256 endingGas = gasleft();
+        usedGas = startingGas - endingGas - innerGas;
     }
 
     function flashBorrowNoPointers(address asset, uint256 amount) public returns (bytes memory) {
