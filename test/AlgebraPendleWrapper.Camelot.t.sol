@@ -15,7 +15,7 @@ import { AlgebraPendleWrapper, IPendleRouterV3 } from "../src/pendle/AlgebraPend
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract AlgebraPendleWrapperTest is Test {
+contract AlgebraPendleWrapperCamelotTest is Test {
     using Arrays for uint256;
     using Arrays for address;
     using SafeERC20 for IERC20;
@@ -27,7 +27,7 @@ contract AlgebraPendleWrapperTest is Test {
     IPendleRouterV3 internal pendleRouter;
     address internal usdc;
     address internal weth;
-    address internal ezeth;
+    address internal underlying;
     address internal owner = makeAddr("owner");
 
     uint256 internal dust = 1e10;
@@ -40,20 +40,19 @@ contract AlgebraPendleWrapperTest is Test {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 196_782_299 });
+        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 199_563_251 });
         factory = IAlgebraFactory(0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B);
         pendleRouter = IPendleRouterV3(0x00000000005BBB0EF59571E58418F9a4357b68A0);
         usdc = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
         weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
         token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
-        ezeth = 0x2416092f143378750bb29b79eD961ab195CcEea5;
+        underlying = 0x2416092f143378750bb29b79eD961ab195CcEea5;
 
         wrapper = new AlgebraPendleWrapper(owner, factory, weth, usdc, pendleRouter);
         borrower = new MockBorrower(wrapper);
 
         // Wrapper needs balance to cover fees
-        deal(ezeth, address(wrapper), 1e18);
-
+        deal(underlying, address(wrapper), 1e18);
         deal(address(token), address(this), 1e18); // For fees
     }
 
@@ -62,14 +61,35 @@ contract AlgebraPendleWrapperTest is Test {
         assertEqDecimal(wrapper.flashFee(token, 1e18), 0.0001e18, 18, "Fee");
     }
 
-    function test_maxFlashLoan() external {
+    function test_maxFlashLoan_PTezETH() external {
+        token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
+        underlying = 0x2416092f143378750bb29b79eD961ab195CcEea5;
+
+        test_maxFlashLoan(158.12588230558881233e18);
+    }
+
+    function test_maxFlashLoan_PTeETH() external {
+        token = 0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4; // PT-eETH-27JUN2024
+        underlying = 0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe;
+
+        test_maxFlashLoan(25.607637295221514008e18);
+    }
+
+    function test_maxFlashLoan_PTrsETH() external {
+        token = 0xAFD22F824D51Fb7EeD4778d303d4388AC644b026; // PT-rsETH-27JUN2024
+        underlying = 0x4186BFC76E2E237523CBC30FD220FE055156b41F;
+
+        test_maxFlashLoan(135.136151288746187413e18);
+    }
+
+    function test_maxFlashLoan(uint256 expected) internal {
         console2.log("test_maxFlashLoan");
 
-        deal(ezeth, address(wrapper), 100e18);
-        assertEqDecimal(wrapper.maxFlashLoan(token), 385.724535031973029964e18, 18, "Max flash loan not right");
+        deal(underlying, address(wrapper), 100e18);
+        assertEqDecimal(wrapper.maxFlashLoan(token), expected, 18, "Max flash loan not right");
 
-        deal(ezeth, address(wrapper), 0.01e18);
-        assertEqDecimal(wrapper.maxFlashLoan(token), 100e18, 18, "Max flash loan not right");
+        deal(underlying, address(wrapper), 0.001e18);
+        assertEqDecimal(wrapper.maxFlashLoan(token), 10e18, 18, "Max flash loan not right");
     }
 
     function test_maxFlashLoan_unsupportedAsset() external {
@@ -89,9 +109,38 @@ contract AlgebraPendleWrapperTest is Test {
         assertEq(wrapper.flashFee(token, 20_000e18), type(uint256).max, "Fee not zero");
     }
 
-    function test_flashLoan() external {
+    function test_flashLoan_PTezETH() external {
+        token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
+        underlying = 0x2416092f143378750bb29b79eD961ab195CcEea5;
+        // Wrapper needs balance to cover fees
+        deal(underlying, address(wrapper), 1e18);
+        deal(address(token), address(this), 1e18); // For fees
+
+        test_flashLoan(10e18);
+    }
+
+    function test_flashLoan_PTeETH() external {
+        token = 0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4; // PT-eETH-27JUN2024
+        underlying = 0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe;
+        // Wrapper needs balance to cover fees
+        deal(underlying, address(wrapper), 1e18);
+        deal(address(token), address(this), 1e18); // For fees
+
+        test_flashLoan(10e18);
+    }
+
+    function test_flashLoan_PTrsETH() external {
+        token = 0xAFD22F824D51Fb7EeD4778d303d4388AC644b026; // PT-rsETH-27JUN2024
+        underlying = 0x4186BFC76E2E237523CBC30FD220FE055156b41F;
+        // Wrapper needs balance to cover fees
+        deal(underlying, address(wrapper), 1e18);
+        deal(address(token), address(this), 1e18); // For fees
+
+        test_flashLoan(10e18);
+    }
+
+    function test_flashLoan(uint256 loan) internal {
         console2.log("test_flashLoan");
-        uint256 loan = 10e18;
         uint256 fee = wrapper.flashFee(token, loan);
         IERC20(token).safeTransfer(address(borrower), fee);
         bytes memory result = borrower.flashBorrow(token, loan);
@@ -124,6 +173,6 @@ contract AlgebraPendleWrapperTest is Test {
 
     function test_AlgebraFlashCallback_permissions() public {
         vm.expectRevert(AlgebraPendleWrapper.Unauthorized.selector);
-        wrapper.algebraFlashCallback({ fee0: 0, fee1: 0, params: abi.encode(ezeth, weth, usdc, 0, "") });
+        wrapper.algebraFlashCallback({ fee0: 0, fee1: 0, params: abi.encode(underlying, weth, usdc, 0, "") });
     }
 }

@@ -14,7 +14,7 @@ import { Arrays } from "src/utils/Arrays.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract AlgebraWrapperTest is Test {
+contract AlgebraWrapperCamelotTest is Test {
     using Arrays for *;
 
     AlgebraWrapper internal wrapper;
