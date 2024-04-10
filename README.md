@@ -30,9 +30,9 @@ repayment approval.
 
 | Lender                 | Networks                                          | Address                                    | Gas             | Fees     | Contract                                                      |
 | ---------------------- | ------------------------------------------------- | ------------------------------------------ | --------------- | -------- | ------------------------------------------------------------- |
-| Aave v3                | Arbitrum One, Optimism, Polygon                   | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | 302483          | 0.09%    | [AaveWrapper](src/aave/AaveWrapper.sol)                       |
+| Aave v3                | Arbitrum One, Optimism, Polygon                   | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | 302483          | 0.05%    | [AaveWrapper](src/aave/AaveWrapper.sol)                       |
 | Aave v3 (Permissioned) | Ethereum, Gnosis                                  | 0x0c86c636ed5593705b5675d370c831972C787841 | 299756          | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                       |
-| Spark                  | Ethereum, Gnosis                                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | 302483          | 0.09%    | [AaveWrapper](src/aave/AaveWrapper.sol)                       |
+| Spark                  | Ethereum, Gnosis                                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | 302483          | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                       |
 | Balancer v2            | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | 183039          | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)           |
 | Balancer v2            | Base                                              | 0xD534400B0555F8441c5a3e0E9e585615B54fB2F4 | 183039          | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)           |
 | Uniswap v3             | Arbitrum One, Optimism, Polygon                   | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | 184417 - 202711 | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)        |
@@ -46,12 +46,6 @@ repayment approval.
 | Balancer + Pendle      | Arbitrum One                                      | 0xC1Ea6a6df39D991006b39706db7C51f5A1819da7 | 595448          | 0        | [BalancerPendleWrapper](src/pendle/BalancerPendleWrapper.sol) |
 | Aerodrome              | Base                                              | 0x69b6E55f00d908018E2D745c524995bc231D762b | 253829 - 314321 | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)              |
 | Velodrome              | Optimism                                          | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | 253829 - 314321 | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)              |
-
-Contracts are deployed at the same address for the same lender for all its supported networks.
-
-When a contract requires constructor parameters which vary per network, these are supplied by the
-[Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported
-network.
 
 Approximate gas costs and fees are provided. For AMMs the fees often vary according to pool parameters and state. Gas
 costs can also vary according to state.
