@@ -9,23 +9,23 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 
 import { Arrays } from "src/utils/Arrays.sol";
 
-import { IAlgebraFactory } from "../src/algebra/interfaces/IAlgebraFactory.sol";
 import { MockBorrower } from "./MockBorrower.sol";
-import { AlgebraPendleWrapper, IPendleRouterV3 } from "../src/pendle/AlgebraPendleWrapper.sol";
+import { IUniswapV3Factory } from "../src/uniswapV3/interfaces/IUniswapV3Factory.sol";
+import { Arrays } from "src/utils/Arrays.sol";
+import { UniswapV3PendleWrapper, IPendleRouterV3 } from "../src/pendle/UniswapV3PendleWrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract AlgebraPendleWrapperCamelotTest is Test {
+contract UniswapV3PendleWrapperTest is Test {
     using Arrays for uint256;
     using Arrays for address;
     using SafeERC20 for IERC20;
 
-    AlgebraPendleWrapper internal wrapper;
+    UniswapV3PendleWrapper internal wrapper;
     MockBorrower internal borrower;
     address internal token;
-    IAlgebraFactory internal factory;
+    IUniswapV3Factory internal factory;
     IPendleRouterV3 internal pendleRouter;
-    address internal usdc;
     address internal weth;
     address internal underlying;
     address internal owner = makeAddr("owner");
@@ -41,14 +41,13 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         }
 
         vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 199_563_251 });
-        factory = IAlgebraFactory(0x1a3c9B1d2F0529D97f2afC5136Cc23e58f1FD35B);
+        factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
         pendleRouter = IPendleRouterV3(0x00000000005BBB0EF59571E58418F9a4357b68A0);
-        usdc = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
         weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
         token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
         underlying = 0x2416092f143378750bb29b79eD961ab195CcEea5;
 
-        wrapper = new AlgebraPendleWrapper(owner, factory, weth, usdc, pendleRouter);
+        wrapper = new UniswapV3PendleWrapper(owner, address(factory), weth, pendleRouter);
         borrower = new MockBorrower(wrapper);
 
         // Wrapper needs balance to cover fees
@@ -65,21 +64,21 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
         underlying = 0x2416092f143378750bb29b79eD961ab195CcEea5;
 
-        test_maxFlashLoan(158.12588230558881233e18);
+        test_maxFlashLoan(103.703691885699322816e18);
     }
 
     function test_maxFlashLoan_PTeETH() external {
         token = 0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4; // PT-eETH-27JUN2024
         underlying = 0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe;
 
-        test_maxFlashLoan(25.607637295221514008e18);
+        test_maxFlashLoan(116.621531724330957646e18);
     }
 
     function test_maxFlashLoan_PTrsETH() external {
         token = 0xAFD22F824D51Fb7EeD4778d303d4388AC644b026; // PT-rsETH-27JUN2024
         underlying = 0x4186BFC76E2E237523CBC30FD220FE055156b41F;
 
-        test_maxFlashLoan(135.136151288746187413e18);
+        test_maxFlashLoan(8.816052000596960554e18);
     }
 
     function test_maxFlashLoan(uint256 expected) internal {
@@ -88,8 +87,8 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         deal(underlying, address(wrapper), 100e18);
         assertEqDecimal(wrapper.maxFlashLoan(token), expected, 18, "Max flash loan not right");
 
-        deal(underlying, address(wrapper), 0.001e18);
-        assertEqDecimal(wrapper.maxFlashLoan(token), 10e18, 18, "Max flash loan not right");
+        deal(underlying, address(wrapper), 0.0001e18);
+        assertLe(wrapper.maxFlashLoan(token), 1e18, "Max flash loan not right");
     }
 
     function test_maxFlashLoan_unsupportedAsset() external {
@@ -136,7 +135,7 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         deal(underlying, address(wrapper), 1e18);
         deal(address(token), address(this), 1e18); // For fees
 
-        test_flashLoan(10e18);
+        test_flashLoan(1e18);
     }
 
     function test_flashLoan(uint256 loan) internal {
@@ -158,11 +157,11 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         assertEq(borrower.flashFee(), fee);
 
         // Owner can retrieve the fees
-        assertEqDecimal(IERC20(token).balanceOf(address(wrapper)), 0.001e18, 18, "Fee not collected by wrapper");
+        assertEqDecimal(IERC20(token).balanceOf(address(wrapper)), fee, 18, "Fee not collected by wrapper");
         address treasury = makeAddr("treasury");
         vm.prank(owner);
-        wrapper.retrieve(IERC20(token), treasury, 0.001e18);
-        assertEqDecimal(IERC20(token).balanceOf(treasury), 0.001e18, 18, "Fee not transferred");
+        wrapper.retrieve(IERC20(token), treasury, fee);
+        assertEqDecimal(IERC20(token).balanceOf(treasury), fee, 18, "Fee not transferred");
         assertEqDecimal(IERC20(token).balanceOf(address(wrapper)), 0, 18, "Fee still in wrapper");
     }
 
@@ -171,8 +170,12 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         wrapper.retrieve(IERC20(token), makeAddr("treasury"), 1e18);
     }
 
-    function test_AlgebraFlashCallback_permissions() public {
-        vm.expectRevert(AlgebraPendleWrapper.Unauthorized.selector);
-        wrapper.algebraFlashCallback({ fee0: 0, fee1: 0, params: abi.encode(underlying, weth, usdc, 0, "") });
+    function test_uniswapV3FlashCallback_permissions() public {
+        vm.expectRevert(UniswapV3PendleWrapper.UnknownPool.selector);
+        wrapper.uniswapV3FlashCallback({
+            fee0: 0,
+            fee1: 0,
+            params: abi.encode(address(token), address(underlying), uint24(0.0005e6), uint256(0), "")
+        });
     }
 }
