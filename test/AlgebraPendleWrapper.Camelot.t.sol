@@ -15,7 +15,7 @@ import { AlgebraPendleWrapper, IPendleRouterV3 } from "../src/pendle/AlgebraPend
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract AlgebraPendleWrapperTest is Test {
+contract AlgebraPendleWrapperCamelotTest is Test {
     using Arrays for uint256;
     using Arrays for address;
     using SafeERC20 for IERC20;

@@ -44,7 +44,7 @@ Contracts are deployed at the same address for all supported networks.
 | [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)           | Dolomite            | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum One                                      |
 | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)         | MorphoBlue          | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          |
 | [AlgebraWrapper](src/algebra/DolomiteWrapper.sol)             | Camelot             | 0x5E8820B2832aD8451f65Fa2CCe2F3Cef29016D0d | Arbitrum One                                      |
-| [AlgebraPendleWrapper](src/pendle/AlgebraPendleWrapper.sol)   | Algebra + Pendle    | 0xC9d66F655b7B35A2B4958bE2FB58E472736Bbc47 | Arbitrum One                                      |
+| [AlgebraPendleWrapper](src/pendle/AlgebraPendleWrapper.sol)   | Camelot + Pendle    | 0xC9d66F655b7B35A2B4958bE2FB58E472736Bbc47 | Arbitrum One                                      |
 | [BalancerPendleWrapper](src/pendle/BalancerPendleWrapper.sol) | Balancer + Pendle   | 0xC1Ea6a6df39D991006b39706db7C51f5A1819da7 | Arbitrum One                                      |
 | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)              | Aerodrome           | 0x69b6E55f00d908018E2D745c524995bc231D762b | Base                                              |
 | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)              | Velodrome           | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          |
