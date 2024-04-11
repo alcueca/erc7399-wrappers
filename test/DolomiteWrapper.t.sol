@@ -86,4 +86,12 @@ contract DolomiteWrapperTest is Test {
         vm.expectRevert(DolomiteWrapper.HashMismatch.selector);
         wrapper.callFunction(address(wrapper), accountInfo, "");
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 10e8;
+        uint256 fee = wrapper.flashFee(wbtc, loan);
+        IERC20(wbtc).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(wbtc, loan, "Dolomite");
+    }
 }

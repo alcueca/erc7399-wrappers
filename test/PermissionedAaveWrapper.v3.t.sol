@@ -120,6 +120,19 @@ contract PermissionedAaveWrapperTest is Test {
         );
         borrower.flashBorrow(dai, 1e18);
     }
+
+    function test_measureFlashLoanGasPermissionedAaveV3() public {
+        console2.log("test_measureFlashLoanGas");
+        vm.mockCall(
+            provider.getACLManager(),
+            abi.encodeWithSelector(IACLManager.isFlashBorrower.selector, wrapper),
+            abi.encode(true)
+        );
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(dai, loan);
+        IERC20(dai).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(dai, loan, "PermissionedAaveV3");
+    }
 }
 
 interface IACLManager {

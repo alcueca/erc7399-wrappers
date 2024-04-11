@@ -175,4 +175,12 @@ contract AlgebraPendleWrapperCamelotTest is Test {
         vm.expectRevert(AlgebraPendleWrapper.Unauthorized.selector);
         wrapper.algebraFlashCallback({ fee0: 0, fee1: 0, params: abi.encode(underlying, weth, usdc, 0, "") });
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        IERC20(token).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "AlgebraPendleCamelot");
+    }
 }

@@ -101,4 +101,12 @@ contract BalancerPendleWrapperTest is Test {
         vm.expectRevert(BalancerPendleWrapper.HashMismatch.selector);
         wrapper.receiveFlashLoan(address(token).toArray(), uint256(1e18).toArray(), uint256(0).toArray(), "");
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 10e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        IERC20(token).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "BalancerPendle");
+    }
 }

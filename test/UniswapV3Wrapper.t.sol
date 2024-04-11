@@ -108,4 +108,13 @@ contract UniswapV3WrapperTest is Test {
             params: abi.encode(address(usdc), address(usdt), uint24(0.0005e6), uint256(0), "")
         });
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        address token = weth;
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "UniswapV3");
+    }
 }

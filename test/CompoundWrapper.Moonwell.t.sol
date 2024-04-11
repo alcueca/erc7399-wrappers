@@ -105,4 +105,12 @@ contract MoonwellWrapperTest is Test {
 
         wrapper.setCToken(IERC20(dai), ICToken(address(0x628ff693426583D9a7FB391E54366292F509D457)));
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(dai, loan);
+        IERC20(dai).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(dai, loan, "CompoundMoonwell");
+    }
 }

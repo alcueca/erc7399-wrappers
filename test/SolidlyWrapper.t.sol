@@ -102,4 +102,13 @@ contract SolidlyWrapperTest is Test {
         vm.expectRevert(SolidlyWrapper.UnknownPool.selector);
         wrapper.hook({ sender: address(wrapper), amount0: 0, amount1: 0, params: abi.encode(weth, usdc, 0, false, "") });
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 1e18;
+        address token = weth;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "Solidly");
+    }
 }
