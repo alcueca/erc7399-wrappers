@@ -30,23 +30,23 @@ repayment approval.
 
 | Lender                 | Address                                    | Networks                                          | Gas     | Fees     | Contract                                                        |
 | ---------------------- | ------------------------------------------ | ------------------------------------------------- | ------- | -------- | --------------------------------------------------------------- |
-| Aave v3                | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Arbitrum One, Optimism, Polygon                   |  212569 | 0.05%    | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
-| Aave v3 (Permissioned) | 0x0c86c636ed5593705b5675d370c831972C787841 | Ethereum, Gnosis                                  |  229742 | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
-| Spark                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | Ethereum, Gnosis                                  |  212569 | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
-| Balancer v2            | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis |  113032 | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
-| Balancer v2            | 0xD534400B0555F8441c5a3e0E9e585615B54fB2F4 | Base                                              |  113032 | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
-| Uniswap v3             | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon                   |   94720 | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |
+| Aave v3                | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Arbitrum One, Optimism, Polygon                   | 212569  | 0.05%    | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
+| Aave v3 (Permissioned) | 0x0c86c636ed5593705b5675d370c831972C787841 | Ethereum, Gnosis                                  | 229742  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
+| Spark                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | Ethereum, Gnosis                                  | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
+| Balancer v2            | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
+| Balancer v2            | 0xD534400B0555F8441c5a3e0E9e585615B54fB2F4 | Base                                              | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
+| Uniswap v3             | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon                   | 94720   | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |
 | Balancer + Moonwell    | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base                                              | 1183309 | 0        | [CompoundWrapper](src/compound/CompoundWrapper.sol)             |
 | Balancer + Sonne       | 0x6412183C579a276f467ad38468D19CC8f1F2b5cb | Optimism                                          | 1040313 | 0        | [CompoundWrapper](src/compound/CompoundWrapper.sol)             |
 | Balancer + Silo        | 0x0F9104Fec1a5C91e63632E215e8F5c57C8f32c77 | Arbitrum One                                      | 1025824 | 1        | [SiloWrapper](src/silo/SiloWrapper.sol)                         |
-| Dolomite               | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum One                                      |  459815 | 0        | [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)             |
-| MorphoBlue             | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          |  132114 | 0        | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)           |
-| Camelot                | 0x5E8820B2832aD8451f65Fa2CCe2F3Cef29016D0d | Arbitrum One                                      |   80679 | 0.01%    | [AlgebraWrapper](src/algebra/AlgebraWrapper.sol)                |
-| Camelot + Pendle       | 0xC9d66F655b7B35A2B4958bE2FB58E472736Bbc47 | Arbitrum One                                      |  506792 | 0.01%    | [AlgebraPendleWrapper](src/pendle/AlgebraPendleWrapper.sol)     |
-| Balancer + Pendle      | 0xC1Ea6a6df39D991006b39706db7C51f5A1819da7 | Arbitrum One                                      |  525422 | 0        | [BalancerPendleWrapper](src/pendle/BalancerPendleWrapper.sol)   |
-| Uniswap v3 + Pendle    | 0xa353Fd50210786F0E038ddD574A21d0CCefb3163 | Arbitrum One                                      |  497567 | Variable | [UniswapV3PendleWrapper](src/pendle/UniswapV3PendleWrapper.sol) |
-| Aerodrome              | 0x69b6E55f00d908018E2D745c524995bc231D762b | Base                                              |  163919 | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
-| Velodrome              | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          |  163919 | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
+| Dolomite               | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum One                                      | 459815  | 0        | [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)             |
+| MorphoBlue             | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          | 132114  | 0        | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)           |
+| Camelot                | 0x5E8820B2832aD8451f65Fa2CCe2F3Cef29016D0d | Arbitrum One                                      | 80679   | 0.01%    | [AlgebraWrapper](src/algebra/AlgebraWrapper.sol)                |
+| Camelot + Pendle       | 0xC9d66F655b7B35A2B4958bE2FB58E472736Bbc47 | Arbitrum One                                      | 506792  | 0.01%    | [AlgebraPendleWrapper](src/pendle/AlgebraPendleWrapper.sol)     |
+| Balancer + Pendle      | 0xC1Ea6a6df39D991006b39706db7C51f5A1819da7 | Arbitrum One                                      | 525422  | 0        | [BalancerPendleWrapper](src/pendle/BalancerPendleWrapper.sol)   |
+| Uniswap v3 + Pendle    | 0xa353Fd50210786F0E038ddD574A21d0CCefb3163 | Arbitrum One                                      | 497567  | Variable | [UniswapV3PendleWrapper](src/pendle/UniswapV3PendleWrapper.sol) |
+| Aerodrome              | 0x69b6E55f00d908018E2D745c524995bc231D762b | Base                                              | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
+| Velodrome              | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 
 Approximate gas costs and fees are provided. For AMMs the fees often vary according to pool parameters and state. Gas
 costs can also vary according to state.
