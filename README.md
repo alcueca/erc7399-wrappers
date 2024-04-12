@@ -1,8 +1,7 @@
 # ERC7399 Flash Lender Wrappers
 
 This repository contains contracts that work as
-[ERC7399](https://github.com/ethereum/EIPs/blob/d072207e24e3cc12b6315909e6a65275a38e1984/EIPS/eip-7399.md) entry points
-for popular flash lenders.
+[ERC7399](https://github.com/ethereum/EIPs/blob/d072207e24e3cc12b6315909e6a65275a38e1984/EIPS/eip-7399.md) entry points for popular flash lenders.
 
 ## How Do These Wrappers Work
 
@@ -23,8 +22,7 @@ sequenceDiagram
     Wrapper -->> Lender: lender calls transferFrom(wrapper, amount + fee) †
 ```
 
-† For the BalancerWrapper and Uniswap v3 the borrower transfers the repayment to the lender and the wrapper skips the
-repayment approval.
+† For the BalancerWrapper and Uniswap v3 the borrower transfers the repayment to the lender and the wrapper skips the repayment approval.
 
 ## Deployments
 
@@ -48,8 +46,7 @@ repayment approval.
 | Aerodrome              | 0x69b6E55f00d908018E2D745c524995bc231D762b | Base                                              | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 | Velodrome              | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 
-Approximate gas costs and fees are provided. For AMMs the fees often vary according to pool parameters and state. Gas
-costs can also vary according to state.
+Disclaimer: The gas costs are calculated for calling `flashLoan` on each wrapper for an arbitrarily chosen token and loan amount. Calling the underlying flash lender directly may have larger gas savings in some instances than others. Requesting loans for different tokens or amounts might have different gas costs. For AMMs the fees often vary according to pool parameters and state.
 
 ## Flash Loans
 
@@ -100,11 +97,9 @@ Deploy to Anvil:
 $ forge script script/Deploy.s.sol --broadcast --fork-url http://localhost:8545
 ```
 
-For this script to work, you need to have a `MNEMONIC` environment variable set to a valid
-[BIP39 mnemonic](https://iancoleman.io/bip39/).
+For this script to work, you need to have a `MNEMONIC` environment variable set to a valid [BIP39 mnemonic](https://iancoleman.io/bip39/).
 
-For instructions on how to deploy to a testnet or mainnet, check out the
-[Solidity Scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) tutorial.
+For instructions on how to deploy to a testnet or mainnet, check out the [Solidity Scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) tutorial.
 
 ### Format
 
@@ -140,11 +135,8 @@ $ forge test
 
 ## Notes
 
-1. Foundry uses [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to manage dependencies. For
-   detailed instructions on working with dependencies, please refer to the
-   [guide](https://book.getfoundry.sh/projects/dependencies.html) in the book
-2. You don't have to create a `.env` file, but filling in the environment variables may be useful when debugging and
-   testing against a fork.
+1. Foundry uses [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to manage dependencies. For detailed instructions on working with dependencies, please refer to the [guide](https://book.getfoundry.sh/projects/dependencies.html) in the book
+2. You don't have to create a `.env` file, but filling in the environment variables may be useful when debugging and testing against a fork.
 
 ## License
 
