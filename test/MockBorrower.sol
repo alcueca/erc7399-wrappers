@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "erc7399/IERC7399.sol";
 import "src/BaseWrapper.sol";
-import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
+import { GasSnapshot } from "forge-gas-snapshot/GasSnapshot.sol";
 
 contract LoanReceiver {
     using SafeERC20 for IERC20;
@@ -139,7 +139,7 @@ contract MockBorrower is GasSnapshot {
     }
 
     function onFlashLoanMeasureGas(
-        address ,
+        address,
         address paymentReceiver,
         address asset,
         uint256 amount,
@@ -176,7 +176,14 @@ contract MockBorrower is GasSnapshot {
         return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoanVoid);
     }
 
-    function flashBorrowMeasureGas(address asset, uint256 amount, string calldata tag) public returns (bytes memory out) {
+    function flashBorrowMeasureGas(
+        address asset,
+        uint256 amount,
+        string calldata tag
+    )
+        public
+        returns (bytes memory out)
+    {
         snapStart(tag);
         out = lender.flash(address(this), asset, amount, "", this.onFlashLoanMeasureGas);
         snapEnd();
