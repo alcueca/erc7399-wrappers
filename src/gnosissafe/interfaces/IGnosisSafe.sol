@@ -14,5 +14,7 @@ interface IGnosisSafe {
         uint256 value,
         bytes calldata data,
         Enum.Operation operation
-    ) external returns (bool success);
+    )
+        external
+        returns (bool success);
 }

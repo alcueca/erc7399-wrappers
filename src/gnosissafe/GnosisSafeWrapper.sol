@@ -24,7 +24,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
 
     IGnosisSafe public immutable safe;
 
-    mapping (address asset => LendingData data) public lending;
+    mapping(address asset => LendingData data) public lending;
 
     constructor(IGnosisSafe _safe) {
         safe = _safe;
@@ -40,20 +40,22 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
     function flashFee(address asset, uint256 amount) public view returns (uint256) {
         uint256 max = maxFlashLoan(asset);
         if (max == 0) revert UnsupportedAsset(asset);
-        return amount >= max ? type(uint256).max : amount * lending[asset].fee / 10000;
+        return amount >= max ? type(uint256).max : amount * lending[asset].fee / 10_000;
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory params) internal override {
-
         Data memory decodedParams = abi.decode(params, (Data));
-        
+
         if (lending[asset].enabled == false) revert UnsupportedAsset(asset);
         uint256 fee = flashFee(asset, amount);
         uint256 balanceAfter = IERC20(asset).balanceOf(address(safe)) + fee;
 
         // Take assets from safe
-        bytes memory transferCall = abi.encodeWithSignature("transfer(address,uint256)", decodedParams.loanReceiver, amount);
-        if (!safe.execTransactionFromModule(asset, 0, transferCall, Enum.Operation.Call)) revert FailedTransfer(asset, amount);
+        bytes memory transferCall =
+            abi.encodeWithSignature("transfer(address,uint256)", decodedParams.loanReceiver, amount);
+        if (!safe.execTransactionFromModule(asset, 0, transferCall, Enum.Operation.Call)) {
+            revert FailedTransfer(asset, amount);
+        }
 
         // Call callback
         _bridgeToCallback(asset, amount, 0, params);
