@@ -9,7 +9,7 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 import { Enum } from "./lib/Enum.sol";
 import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
-/// @dev MorphoBlue Flash Lender that uses MorphoBlue as source of liquidity.
+/// @dev Safe Gnosis Flash Lender that uses individual Gnosis Safe contracts as source of liquidity.
 contract GnosisSafeWrapper is BaseWrapper, AccessControl {
     error UnsupportedAsset(address asset);
     error FailedTransfer(address asset, uint256 amount);
@@ -64,6 +64,10 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
         if (IERC20(asset).balanceOf(address(safe)) < balanceAfter) revert InsufficientRepayment(asset, amount + fee);
     }
 
+    /// @dev Set lending data for an asset.
+    /// @param asset Address of the asset.
+    /// @param fee Fee for the flash loan (FP 1e-4)
+    /// @param enabled Whether the asset is enabled for flash loans.
     function setLendingData(address asset, uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
         lending[asset] = LendingData({ fee: fee, enabled: enabled });
         emit LendingDataSet(asset, fee, enabled);
