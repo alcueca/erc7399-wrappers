@@ -103,4 +103,12 @@ contract SonneWrapperTest is Test {
 
         wrapper.setCToken(IERC20(snx), ICToken(address(0xD7dAabd899D1fAbbC3A9ac162568939CEc0393Cc)));
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(snx, loan);
+        IERC20(snx).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(snx, loan, "CompoundSonne");
+    }
 }
