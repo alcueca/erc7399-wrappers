@@ -26,7 +26,8 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
 
     mapping(address asset => LendingData data) public lending;
 
-    constructor(IGnosisSafe _safe) {
+    constructor(address owner, IGnosisSafe _safe) {
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
         safe = _safe;
     }
 
