@@ -6,7 +6,9 @@ import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import { IGnosisSafe } from "src/gnosissafe/interfaces/IGnosisSafe.sol";
 import { MockBorrower } from "./MockBorrower.sol";
@@ -36,23 +38,37 @@ contract GnosisSafeWrapperTest is Test {
         USDT = 0x4ECaBa5870353805a9F068101A40E0f32ed605C6;
         USDC = 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83;
 
-        wrapper = new GnosisSafeWrapper(address(this), safe);
+        wrapper = new GnosisSafeWrapper(safe);
         borrower = new MockBorrower(wrapper);
 
         deal(USDT, address(safe), 100e18);
-        deal(USDT, address(borrower), 1e18);
 
-        vm.prank(address(safe));
+        vm.startPrank(address(safe));
         safe.enableModule(address(wrapper));
-
         wrapper.setLendingData(USDT, 10, true);
-
+        vm.stopPrank();
     }
 
-    /// @dev Basic test. Run it with `forge test -vvv` to see the console log.
+    function test_setLendingData_unauthorized() external {
+        console2.log("test_setLendingData_unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), wrapper.DEFAULT_ADMIN_ROLE()
+            )
+        );
+        wrapper.setLendingData(USDT, 10, true);
+    }
+
     function test_flashFee() external {
         console2.log("test_flashFee");
         assertEq(wrapper.flashFee(USDT, 1e18), 1e15, "Flash fee not right");
+    }
+
+    function test_setLendingData_changeFee() external {
+        console2.log("test_setLendingData_changeFee");
+        vm.prank(address(safe));
+        wrapper.setLendingData(USDT, 1, true);
+        assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
     }
 
     function test_maxFlashLoan() external {
@@ -76,11 +92,12 @@ contract GnosisSafeWrapperTest is Test {
         assertEq(wrapper.flashFee(USDT, 20_000e18), type(uint256).max, "Flash fee not right");
     }
 
-    function test_flashLoanDebug() external {
+    function test_flashLoan() external {
         console2.log("test_flashLoan");
         uint256 loan = 10e18;
         uint256 fee = wrapper.flashFee(USDT, loan);
-        IERC20(USDT).safeTransfer(address(borrower), fee);
+        deal(USDT, address(borrower), fee);
+
         bytes memory result = borrower.flashBorrow(USDT, loan);
 
         // Test the return values passed through the wrapper
@@ -94,5 +111,13 @@ contract GnosisSafeWrapperTest is Test {
         assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
         // borrowed
         assertEq(borrower.flashFee(), fee);
+    }
+
+    function test_setLendingData_disable() external {
+        console2.log("test_setLendingData_disable");
+        vm.prank(address(safe));
+        wrapper.setLendingData(USDT, 10, false);
+        vm.expectRevert(abi.encodeWithSelector(GnosisSafeWrapper.UnsupportedAsset.selector, USDT));
+        borrower.flashBorrow(USDT, 1);
     }
 }

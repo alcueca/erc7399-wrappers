@@ -26,8 +26,9 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
 
     mapping(address asset => LendingData data) public lending;
 
-    constructor(address owner, IGnosisSafe _safe) {
-        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+    /// @param _safe The Gnosis Safe to use as the source of liquidity, and as the owner of this contract.
+    constructor(IGnosisSafe _safe) {
+        _grantRole(DEFAULT_ADMIN_ROLE, address(_safe));
         safe = _safe;
     }
 
@@ -59,10 +60,20 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
         }
 
         // Call callback
-        _bridgeToCallback(asset, amount, 0, params);
+        _bridgeToCallback(asset, amount, fee, params);
 
         // Make sure assets are back in safe (think about reentrancy)
         if (IERC20(asset).balanceOf(address(safe)) < balanceAfter) revert InsufficientRepayment(asset, amount + fee);
+    }
+
+    /// @dev Transfer the assets to the loan receiver.
+    /// Overriden because the provider can send the funds directly
+    function _transferAssets(address asset, uint256 amount, address loanReceiver) internal override { }
+
+    /// @dev Where should the end client send the funds to repay the loan
+    /// Overriden because the provider can receive the funds directly
+    function _repayTo() internal view override returns (address) {
+        return address(safe);
     }
 
     /// @dev Set lending data for an asset.
