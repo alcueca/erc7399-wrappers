@@ -68,7 +68,8 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
 
     /// @dev Transfer the assets to the loan receiver.
     /// Overriden because the provider can send the funds directly
-    function _transferAssets(address asset, uint256 amount, address loanReceiver) internal override { }
+    // solhint-disable-next-line no-empty-blocks
+    function _transferAssets(address, uint256, address) internal override { }
 
     /// @dev Where should the end client send the funds to repay the loan
     /// Overriden because the provider can receive the funds directly

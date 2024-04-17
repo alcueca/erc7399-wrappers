@@ -56,7 +56,9 @@ network.
 
 ## Gnosis Safe Wrapper
 
-The [Gnosis Safe Wrapper](src/gnosissafe/GnosisSafeWrapper.sol) is intended for individual users to enable it as a module in their Gnosis Safe, so that they can lend their own assets and earn a fee. Please let us know if you do it and we'll add your Safe to the list above.
+The [Gnosis Safe Wrapper](src/gnosissafe/GnosisSafeWrapper.sol) is intended for individual users to enable it as a
+module in their Gnosis Safe, so that they can lend their own assets and earn a fee. Please let us know if you do it and
+we'll add your Safe to the list above.
 
 ## Flash Loans
 
@@ -65,9 +67,10 @@ For detail on executing flash loans, please refer to the
 
 ## Safety
 
-This is __experimental software__ and is provided on an "as is" and "as available" basis.
+This is **experimental software** and is provided on an "as is" and "as available" basis.
 
-While care has been taken during development, and most contracts have seen significant use, __we do not give any warranties__ and __will not be liable for any loss__ incurred through any use of this codebase.
+While care has been taken during development, and most contracts have seen significant use, **we do not give any
+warranties** and **will not be liable for any loss** incurred through any use of this codebase.
 
 ## Using This Repository
 
