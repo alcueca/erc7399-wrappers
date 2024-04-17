@@ -54,10 +54,20 @@ When a contract requires constructor parameters which vary per network, these ar
 [Registry](https://github.com/alcueca/registry) deployed at 0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c in each supported
 network.
 
+## Gnosis Safe Wrapper
+
+The [Gnosis Safe Wrapper](src/gnosissafe/GnosisSafeWrapper.sol) is intended for individual users to enable it as a module in their Gnosis Safe, so that they can lend their own assets and earn a fee. Please let us know if you do it and we'll add your Safe to the list above.
+
 ## Flash Loans
 
 For detail on executing flash loans, please refer to the
-[ERC7399](https://github.com/ethereum/EIPs/blob/d072207e24e3cc12b6315909e6a65275a38e1984/EIPS/eip-7399.md) EIP.
+[ERC7399](https://github.com/ethereum/ERCs/blob/master/ERCS/erc-7399.md) EIP.
+
+## Safety
+
+This is __experimental software__ and is provided on an "as is" and "as available" basis.
+
+While care has been taken during development, and most contracts have seen significant use, __we do not give any warranties__ and __will not be liable for any loss__ incurred through any use of this codebase.
 
 ## Using This Repository
 
