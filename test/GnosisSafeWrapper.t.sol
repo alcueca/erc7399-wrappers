@@ -33,10 +33,10 @@ contract GnosisSafeWrapperTest is Test {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "gnosis", blockNumber: 33_471_377 });
-        safe = IGnosisSafe(0x0faAe596Ce5d762BcD78b4415992726492570B54);
-        USDT = 0x4ECaBa5870353805a9F068101A40E0f32ed605C6;
-        USDC = 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83;
+        vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 19_674_449 });
+        safe = IGnosisSafe(0xfA6DaAF31F8E2498b5D4C43E59c6eDd345D951F5);
+        USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
         wrapper = new GnosisSafeWrapper(safe);
         borrower = new MockBorrower(wrapper);
