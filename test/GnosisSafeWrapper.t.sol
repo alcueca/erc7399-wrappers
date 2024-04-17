@@ -71,6 +71,24 @@ contract GnosisSafeWrapperTest is Test {
         assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
     }
 
+    function test_setLendingDataAll_changeFee() external {
+        console2.log("test_setLendingDataAll_changeFee");
+        vm.prank(address(safe));
+        wrapper.setLendingDataAll(1, true);
+        assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
+        deal(USDC, address(safe), 100e18);
+        assertEq(wrapper.flashFee(USDC, 1e18), 1e14, "Flash fee not right");
+    }
+
+    function test_setLendingDataAll_disable() external {
+        console2.log("test_setLendingDataAll_changeFee");
+        vm.startPrank(address(safe));
+        wrapper.setLendingDataAll(1, true);
+        wrapper.setLendingDataAll(1, false);
+        vm.stopPrank();
+        assertEq(wrapper.flashFee(USDT, 1e18), 1e15, "Flash fee not right");
+    }
+
     function test_maxFlashLoan() external {
         console2.log("test_maxFlashLoan");
         assertEq(wrapper.maxFlashLoan(USDT), 100e18, "Max flash loan not right");

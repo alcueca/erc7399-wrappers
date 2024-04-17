@@ -23,6 +23,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
     }
 
     IGnosisSafe public immutable safe;
+    address public constant ALL_ASSETS = address(0);
 
     mapping(address asset => LendingData data) public lending;
 
@@ -34,22 +35,30 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
-        if (lending[asset].enabled == false) return 0;
-        return IERC20(asset).balanceOf(address(safe));
+        if (lending[asset].enabled == true || lending[ALL_ASSETS].enabled == true) {
+            return IERC20(asset).balanceOf(address(safe));
+        } else {
+            return 0;
+        }
     }
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) public view returns (uint256) {
         uint256 max = maxFlashLoan(asset);
-        if (max == 0) revert UnsupportedAsset(asset);
-        return amount >= max ? type(uint256).max : amount * lending[asset].fee / 10_000;
+        if (max == 0) revert UnsupportedAsset(asset); // TODO: Should we revert on tokens that are enabled but have zero
+            // liquidity?
+        if (amount >= max) {
+            return type(uint256).max;
+        } else {
+            uint256 fee = lending[ALL_ASSETS].enabled == true ? lending[ALL_ASSETS].fee : lending[asset].fee;
+            return amount * fee / 10_000;
+        }
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory params) internal override {
         Data memory decodedParams = abi.decode(params, (Data));
 
-        if (lending[asset].enabled == false) revert UnsupportedAsset(asset);
-        uint256 fee = flashFee(asset, amount);
+        uint256 fee = flashFee(asset, amount); // Checks for unsupported assets
         uint256 balanceAfter = IERC20(asset).balanceOf(address(safe)) + fee;
 
         // Take assets from safe
@@ -62,7 +71,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
         // Call callback
         _bridgeToCallback(asset, amount, fee, params);
 
-        // Make sure assets are back in safe (think about reentrancy)
+        // Make sure assets are back in safe (TODO: think about reentrancy)
         if (IERC20(asset).balanceOf(address(safe)) < balanceAfter) revert InsufficientRepayment(asset, amount + fee);
     }
 
@@ -82,7 +91,16 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
     /// @param fee Fee for the flash loan (FP 1e-4)
     /// @param enabled Whether the asset is enabled for flash loans.
     function setLendingData(address asset, uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (asset == ALL_ASSETS) revert UnsupportedAsset(asset); // address(0) is reserved for the all assets override
         lending[asset] = LendingData({ fee: fee, enabled: enabled });
         emit LendingDataSet(asset, fee, enabled);
+    }
+
+    /// @dev Set a lending data override for all assets.
+    /// @param fee Fee for the flash loan (FP 1e-4)
+    /// @param enabled Whether the lending data override is enabled for flash loans.
+    function setLendingDataAll(uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        lending[ALL_ASSETS] = LendingData({ fee: fee, enabled: enabled });
+        emit LendingDataSet(ALL_ASSETS, fee, enabled);
     }
 }
