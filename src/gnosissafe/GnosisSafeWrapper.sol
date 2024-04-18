@@ -29,7 +29,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
     IGnosisSafe public safe;
 
     mapping(address asset => LendingData data) public lending;
-    
+
     function initialize(address _safe) public initializer {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         safe = IGnosisSafe(_safe);

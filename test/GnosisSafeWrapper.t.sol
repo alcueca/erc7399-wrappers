@@ -89,7 +89,7 @@ contract GnosisSafeWrapperStateZeroTest is GnosisSafeWrapperStateZero {
 }
 
 abstract contract GnosisSafeWrapperWithWrapper is GnosisSafeWrapperStateZero {
-    function setUp() public override virtual {
+    function setUp() public virtual override {
         super.setUp();
 
         vm.startPrank(address(safe));
@@ -97,7 +97,7 @@ abstract contract GnosisSafeWrapperWithWrapper is GnosisSafeWrapperStateZero {
         safe.enableModule(address(wrapper));
         factory.lend(USDT, 10, true);
         vm.stopPrank();
-        
+
         borrower = new MockBorrower(wrapper);
     }
 }

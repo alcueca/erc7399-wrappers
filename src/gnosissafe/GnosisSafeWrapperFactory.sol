@@ -5,15 +5,13 @@ import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 
 import { GnosisSafeWrapper } from "./GnosisSafeWrapper.sol";
 
-
 contract GnosisSafeWrapperFactory {
-
     event LenderCreated(address safe, GnosisSafeWrapper lender);
     event LendingDataSet(address safe, address asset, uint248 fee, bool enabled);
 
     address public constant ALL_ASSETS = address(0);
 
-    GnosisSafeWrapper immutable public template;
+    GnosisSafeWrapper public immutable template;
 
     mapping(address safe => GnosisSafeWrapper lender) public lenders;
 
