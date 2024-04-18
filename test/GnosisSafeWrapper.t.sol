@@ -12,13 +12,15 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 
 import { IGnosisSafe } from "src/gnosissafe/interfaces/IGnosisSafe.sol";
 import { MockBorrower } from "./MockBorrower.sol";
+import { GnosisSafeWrapperFactory } from "src/gnosissafe/GnosisSafeWrapperFactory.sol";
 import { GnosisSafeWrapper } from "src/gnosissafe/GnosisSafeWrapper.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
-contract GnosisSafeWrapperTest is Test {
+abstract contract GnosisSafeWrapperStateZero is Test {
     using SafeERC20 for IERC20;
 
+    GnosisSafeWrapperFactory internal factory;
     GnosisSafeWrapper internal wrapper;
     MockBorrower internal borrower;
     address internal USDT;
@@ -38,17 +40,69 @@ contract GnosisSafeWrapperTest is Test {
         USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
-        wrapper = new GnosisSafeWrapper(safe);
-        borrower = new MockBorrower(wrapper);
-
+        factory = new GnosisSafeWrapperFactory();
         deal(USDT, address(safe), 100e18);
+    }
+}
 
-        vm.startPrank(address(safe));
-        safe.enableModule(address(wrapper));
-        wrapper.setLendingData(USDT, 10, true);
-        vm.stopPrank();
+contract GnosisSafeWrapperStateZeroTest is GnosisSafeWrapperStateZero {
+    function test_deploy() external {
+        console2.log("test_deploy");
+        wrapper = factory.deploy(address(safe));
+        assertEq(address(factory.lenders(address(safe))), address(wrapper));
+        assertEq(address(wrapper.safe()), address(safe));
     }
 
+    function test_predictLenderAddressDebug() external {
+        console2.log("test_predictLenderAddress");
+        wrapper = factory.deploy(address(safe));
+        assertEq(factory.predictLenderAddress(address(safe)), address(wrapper));
+    }
+
+    function test_lendDebug() external {
+        console2.log("test_lend");
+        vm.prank(address(safe));
+        factory.lend(USDT, 10, true);
+        wrapper = GnosisSafeWrapper(factory.predictLenderAddress(address(safe)));
+        (uint256 fee, bool enabled) = wrapper.lending(USDT);
+        assertEq(fee, 10);
+        assertEq(enabled, true);
+    }
+
+    function test_lendAll() external {
+        console2.log("test_lendAll");
+        vm.prank(address(safe));
+        factory.lendAll(10, true);
+        wrapper = GnosisSafeWrapper(factory.predictLenderAddress(address(safe)));
+        (uint256 fee, bool enabled) = wrapper.lending(wrapper.ALL_ASSETS());
+        assertEq(fee, 10);
+        assertEq(enabled, true);
+    }
+
+    function test_myLender() external {
+        console2.log("test_myLender");
+        vm.startPrank(address(safe));
+        wrapper = factory.deploy(address(safe));
+        assertEq(factory.myLender(), address(wrapper));
+        vm.stopPrank();
+    }
+}
+
+abstract contract GnosisSafeWrapperWithWrapper is GnosisSafeWrapperStateZero {
+    function setUp() public override virtual {
+        super.setUp();
+
+        vm.startPrank(address(safe));
+        wrapper = GnosisSafeWrapper(factory.myLender());
+        safe.enableModule(address(wrapper));
+        factory.lend(USDT, 10, true);
+        vm.stopPrank();
+        
+        borrower = new MockBorrower(wrapper);
+    }
+}
+
+contract GnosisSafeWrapperWithWrapperTest is GnosisSafeWrapperWithWrapper {
     function test_setLendingData_unauthorized() external {
         console2.log("test_setLendingData_unauthorized");
         vm.expectRevert(
@@ -56,7 +110,7 @@ contract GnosisSafeWrapperTest is Test {
                 IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), wrapper.DEFAULT_ADMIN_ROLE()
             )
         );
-        wrapper.setLendingData(USDT, 10, true);
+        wrapper.lend(USDT, 10, true);
     }
 
     function test_flashFee() external {
@@ -67,14 +121,14 @@ contract GnosisSafeWrapperTest is Test {
     function test_setLendingData_changeFee() external {
         console2.log("test_setLendingData_changeFee");
         vm.prank(address(safe));
-        wrapper.setLendingData(USDT, 1, true);
+        factory.lend(USDT, 1, true);
         assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
     }
 
     function test_setLendingDataAll_changeFee() external {
         console2.log("test_setLendingDataAll_changeFee");
         vm.prank(address(safe));
-        wrapper.setLendingDataAll(1, true);
+        factory.lendAll(1, true);
         assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
         deal(USDC, address(safe), 100e18);
         assertEq(wrapper.flashFee(USDC, 1e18), 1e14, "Flash fee not right");
@@ -83,8 +137,8 @@ contract GnosisSafeWrapperTest is Test {
     function test_setLendingDataAll_disable() external {
         console2.log("test_setLendingDataAll_changeFee");
         vm.startPrank(address(safe));
-        wrapper.setLendingDataAll(1, true);
-        wrapper.setLendingDataAll(1, false);
+        factory.lendAll(1, true);
+        factory.lendAll(1, false);
         vm.stopPrank();
         assertEq(wrapper.flashFee(USDT, 1e18), 1e15, "Flash fee not right");
     }
@@ -134,7 +188,7 @@ contract GnosisSafeWrapperTest is Test {
     function test_setLendingData_disable() external {
         console2.log("test_setLendingData_disable");
         vm.prank(address(safe));
-        wrapper.setLendingData(USDT, 10, false);
+        factory.lend(USDT, 10, false);
         vm.expectRevert(abi.encodeWithSelector(GnosisSafeWrapper.UnsupportedAsset.selector, USDT));
         borrower.flashBorrow(USDT, 1);
     }

@@ -5,32 +5,35 @@ pragma solidity ^0.8.19;
 import { IGnosisSafe } from "./interfaces/IGnosisSafe.sol";
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import { Enum } from "./lib/Enum.sol";
 import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Safe Gnosis Flash Lender that uses individual Gnosis Safe contracts as source of liquidity.
-contract GnosisSafeWrapper is BaseWrapper, AccessControl {
+contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
     error UnsupportedAsset(address asset);
     error FailedTransfer(address asset, uint256 amount);
     error InsufficientRepayment(address asset, uint256 amount);
 
     event LendingDataSet(address asset, uint248 fee, bool enabled);
+    event SafeSet(IGnosisSafe safe);
 
     struct LendingData {
         uint248 fee; // 1 = 0.01%
         bool enabled;
     }
 
-    IGnosisSafe public immutable safe;
     address public constant ALL_ASSETS = address(0);
 
-    mapping(address asset => LendingData data) public lending;
+    IGnosisSafe public safe;
 
-    /// @param _safe The Gnosis Safe to use as the source of liquidity, and as the owner of this contract.
-    constructor(IGnosisSafe _safe) {
-        _grantRole(DEFAULT_ADMIN_ROLE, address(_safe));
-        safe = _safe;
+    mapping(address asset => LendingData data) public lending;
+    
+    function initialize(address _safe) public initializer {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        safe = IGnosisSafe(_safe);
+        emit SafeSet(safe);
     }
 
     /// @inheritdoc IERC7399
@@ -90,7 +93,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
     /// @param asset Address of the asset.
     /// @param fee Fee for the flash loan (FP 1e-4)
     /// @param enabled Whether the asset is enabled for flash loans.
-    function setLendingData(address asset, uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function lend(address asset, uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
         if (asset == ALL_ASSETS) revert UnsupportedAsset(asset); // address(0) is reserved for the all assets override
         lending[asset] = LendingData({ fee: fee, enabled: enabled });
         emit LendingDataSet(asset, fee, enabled);
@@ -99,7 +102,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl {
     /// @dev Set a lending data override for all assets.
     /// @param fee Fee for the flash loan (FP 1e-4)
     /// @param enabled Whether the lending data override is enabled for flash loans.
-    function setLendingDataAll(uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function lendAll(uint248 fee, bool enabled) public onlyRole(DEFAULT_ADMIN_ROLE) {
         lending[ALL_ASSETS] = LendingData({ fee: fee, enabled: enabled });
         emit LendingDataSet(ALL_ASSETS, fee, enabled);
     }
