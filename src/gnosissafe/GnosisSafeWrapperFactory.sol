@@ -36,6 +36,8 @@ contract GnosisSafeWrapperFactory {
         emit LenderCreated(safe, _lender);
     }
 
+    /// @dev Get the Gnosis Safe wrapper for a Gnosis Safe, deploying it if it doesn't exist.
+    /// @param safe Address of the Gnosis Safe.
     function _getOrDeploy(address safe) internal returns (GnosisSafeWrapper _lender) {
         _lender = lender(safe);
         if (!_deployed(_lender)) _lender = _deploy(safe);
