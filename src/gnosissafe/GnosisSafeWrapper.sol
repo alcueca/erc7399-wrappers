@@ -16,7 +16,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
     error FailedTransfer(address asset, uint256 amount);
     error InsufficientRepayment(address asset, uint256 amount);
 
-    event LendingDataSet(address asset, uint248 fee, bool enabled);
+    event LendingDataSet(address indexed asset, uint248 fee, bool enabled);
     event SafeSet(IGnosisSafe safe);
 
     struct LendingData {
