@@ -56,9 +56,37 @@ network.
 
 ## Gnosis Safe Wrapper
 
-The [Gnosis Safe Wrapper](src/gnosissafe/GnosisSafeWrapper.sol) is intended for individual users to enable it as a
-module in their Gnosis Safe, so that they can lend their own assets and earn a fee. Please let us know if you do it and
-we'll add your Safe to the list above.
+The [Gnosis Safe Wrapper](src/gnosissafe/GnosisSafeWrapper.sol) is intended for individual users to flash lend their own
+assets held in a Gnosis Safe and earn a fee. To enable it, from your own Gnosis Safe, execute a transaction bundle to
+enable the GnosisSafeWrapperFactory and set the fees for individual assets.
+
+```
+safe.enableModule(gnosisSafeWrapperFactory);
+gnosisSafeWrapperFactory.lend(asset, fee);
+...
+```
+
+or an override to lend all assets in the safe:
+
+```
+safe.enableModule(gnosisSafeWrapperFactory);
+gnosisSafeWrapperFactory.lendAll(fee);
+...
+```
+
+The `fee` parameter can be zero for free flash loans. To disable lending, execute from your safe the following command:
+
+```
+gnosisSafeWrapperFactory.disableLend(asset);
+...
+```
+
+If you set a lending override, you can disable it to go back to individual asset configuration:
+
+```
+gnosisSafeWrapperFactory.disableLendAll();
+...
+```
 
 ## Flash Loans
 

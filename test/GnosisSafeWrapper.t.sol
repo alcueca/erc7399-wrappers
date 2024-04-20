@@ -62,10 +62,10 @@ contract GnosisSafeWrapperStateZeroTest is GnosisSafeWrapperStateZero {
         assertEq(address(factory.lender(address(safe))), address(wrapper));
     }
 
-    function test_lendDebug() external {
+    function test_lend() external {
         console2.log("test_lend");
         vm.prank(address(safe));
-        factory.lend(USDT, 10, true);
+        factory.lend(USDT, 10);
         wrapper = factory.lender(address(safe));
         (uint256 fee, bool enabled) = wrapper.lending(USDT);
         assertEq(fee, 10);
@@ -75,7 +75,7 @@ contract GnosisSafeWrapperStateZeroTest is GnosisSafeWrapperStateZero {
     function test_lendAll() external {
         console2.log("test_lendAll");
         vm.prank(address(safe));
-        factory.lendAll(10, true);
+        factory.lendAll(10);
         wrapper = factory.lender(address(safe));
         (uint256 fee, bool enabled) = wrapper.lending(wrapper.ALL_ASSETS());
         assertEq(fee, 10);
@@ -98,7 +98,7 @@ abstract contract GnosisSafeWrapperWithWrapper is GnosisSafeWrapperStateZero {
         vm.startPrank(address(safe));
         wrapper = factory.lender();
         safe.enableModule(address(wrapper));
-        factory.lend(USDT, 10, true);
+        factory.lend(USDT, 10);
         vm.stopPrank();
 
         borrower = new MockBorrower(wrapper);
@@ -106,8 +106,8 @@ abstract contract GnosisSafeWrapperWithWrapper is GnosisSafeWrapperStateZero {
 }
 
 contract GnosisSafeWrapperWithWrapperTest is GnosisSafeWrapperWithWrapper {
-    function test_setLendingData_unauthorized() external {
-        console2.log("test_setLendingData_unauthorized");
+    function test_lend_unauthorized() external {
+        console2.log("test_lend_unauthorized");
         vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), wrapper.DEFAULT_ADMIN_ROLE()
@@ -121,27 +121,27 @@ contract GnosisSafeWrapperWithWrapperTest is GnosisSafeWrapperWithWrapper {
         assertEq(wrapper.flashFee(USDT, 1e18), 1e15, "Flash fee not right");
     }
 
-    function test_setLendingData_changeFee() external {
-        console2.log("test_setLendingData_changeFee");
+    function test_lend_changeFee() external {
+        console2.log("test_lend_changeFee");
         vm.prank(address(safe));
-        factory.lend(USDT, 1, true);
+        factory.lend(USDT, 1);
         assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
     }
 
-    function test_setLendingDataAll_changeFee() external {
-        console2.log("test_setLendingDataAll_changeFee");
+    function test_lendAll_changeFee() external {
+        console2.log("test_lendAll_changeFee");
         vm.prank(address(safe));
-        factory.lendAll(1, true);
+        factory.lendAll(1);
         assertEq(wrapper.flashFee(USDT, 1e18), 1e14, "Flash fee not right");
         deal(USDC, address(safe), 100e18);
         assertEq(wrapper.flashFee(USDC, 1e18), 1e14, "Flash fee not right");
     }
 
-    function test_setLendingDataAll_disable() external {
-        console2.log("test_setLendingDataAll_changeFee");
+    function test_lendAll_disable() external {
+        console2.log("test_lendAll_changeFee");
         vm.startPrank(address(safe));
-        factory.lendAll(1, true);
-        factory.lendAll(1, false);
+        factory.lendAll(1);
+        factory.disableLendAll();
         vm.stopPrank();
         assertEq(wrapper.flashFee(USDT, 1e18), 1e15, "Flash fee not right");
     }
@@ -188,10 +188,10 @@ contract GnosisSafeWrapperWithWrapperTest is GnosisSafeWrapperWithWrapper {
         assertEq(borrower.flashFee(), fee);
     }
 
-    function test_setLendingData_disable() external {
-        console2.log("test_setLendingData_disable");
+    function test_lend_disable() external {
+        console2.log("test_lend_disable");
         vm.prank(address(safe));
-        factory.lend(USDT, 10, false);
+        factory.disableLend(USDT);
         vm.expectRevert(abi.encodeWithSelector(GnosisSafeWrapper.UnsupportedAsset.selector, USDT));
         borrower.flashBorrow(USDT, 1);
     }

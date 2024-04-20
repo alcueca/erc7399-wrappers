@@ -27,7 +27,8 @@ contract GnosisSafeWrapperFactory {
     }
 
     /// @dev Deploy a new Gnosis Safe wrapper for a Gnosis Safe.
-    /// The factory will become the owner of the wrapper, and the safe will be able to govern the wrapper through the factory.
+    /// The factory will become the owner of the wrapper, and the safe will be able to govern the wrapper through the
+    /// factory.
     /// There can ever be only one wrapper per safe
     /// @param safe Address of the Gnosis Safe.
     function _deploy(address safe) internal returns (GnosisSafeWrapper _lender) {
@@ -76,19 +77,35 @@ contract GnosisSafeWrapperFactory {
     /// @dev Set lending data for an asset.
     /// @param asset Address of the asset.
     /// @param fee Fee for the flash loan (FP 1e-4)
-    /// @param enabled Whether the asset is enabled for flash loans.
-    function lend(address asset, uint248 fee, bool enabled) public {
+    function lend(address asset, uint248 fee) public {
         GnosisSafeWrapper _lender = _getOrDeploy(msg.sender);
-        _lender.lend(asset, fee, enabled);
-        emit LendingDataSet(msg.sender, asset, fee, enabled);
+        _lender.lend(asset, fee, true);
+        emit LendingDataSet(msg.sender, asset, fee, true);
+    }
+
+    /// @dev Disable lending for an asset.
+    /// @param asset Address of the asset.
+    function disableLend(address asset) public {
+        GnosisSafeWrapper _lender = _getOrDeploy(msg.sender);
+        (uint248 fee,) = _lender.lending(asset);
+        _lender.lend(asset, fee, false);
+        emit LendingDataSet(msg.sender, asset, fee, false);
     }
 
     /// @dev Set a lending data override for all assets.
     /// @param fee Fee for the flash loan (FP 1e-4)
-    /// @param enabled Whether the lending data override is enabled for flash loans.
-    function lendAll(uint248 fee, bool enabled) public {
+    function lendAll(uint248 fee) public {
         GnosisSafeWrapper _lender = _getOrDeploy(msg.sender);
-        _lender.lendAll(fee, enabled);
-        emit LendingDataSet(msg.sender, ALL_ASSETS, fee, enabled);
+        _lender.lendAll(fee, true);
+        emit LendingDataSet(msg.sender, ALL_ASSETS, fee, true);
+    }
+
+    /// @dev Disable the lending override for all assets.
+    /// @notice If you have individual lending data set for assets, this will not affect them.
+    function disableLendAll() public {
+        GnosisSafeWrapper _lender = _getOrDeploy(msg.sender);
+        (uint248 fee,) = _lender.lending(ALL_ASSETS);
+        _lender.lendAll(fee, false);
+        emit LendingDataSet(msg.sender, ALL_ASSETS, fee, false);
     }
 }
