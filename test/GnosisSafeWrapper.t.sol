@@ -27,6 +27,10 @@ abstract contract GnosisSafeWrapperStateZero is Test {
     address internal USDC;
     IGnosisSafe internal safe;
 
+    function _deployed(GnosisSafeWrapper _lender) internal view returns (bool) {
+        return address(_lender).code.length > 0;
+    }
+
     /// @dev A function invoked before each test case is run.
     function setUp() public virtual {
         // Revert if there is no API key.
@@ -49,21 +53,20 @@ contract GnosisSafeWrapperStateZeroTest is GnosisSafeWrapperStateZero {
     function test_deploy() external {
         console2.log("test_deploy");
         wrapper = factory.deploy(address(safe));
-        assertEq(address(factory.lenders(address(safe))), address(wrapper));
         assertEq(address(wrapper.safe()), address(safe));
     }
 
-    function test_predictLenderAddressDebug() external {
-        console2.log("test_predictLenderAddress");
+    function test_lender() external {
+        console2.log("test_lender");
         wrapper = factory.deploy(address(safe));
-        assertEq(factory.predictLenderAddress(address(safe)), address(wrapper));
+        assertEq(address(factory.lender(address(safe))), address(wrapper));
     }
 
     function test_lendDebug() external {
         console2.log("test_lend");
         vm.prank(address(safe));
         factory.lend(USDT, 10, true);
-        wrapper = GnosisSafeWrapper(factory.predictLenderAddress(address(safe)));
+        wrapper = factory.lender(address(safe));
         (uint256 fee, bool enabled) = wrapper.lending(USDT);
         assertEq(fee, 10);
         assertEq(enabled, true);
@@ -73,17 +76,17 @@ contract GnosisSafeWrapperStateZeroTest is GnosisSafeWrapperStateZero {
         console2.log("test_lendAll");
         vm.prank(address(safe));
         factory.lendAll(10, true);
-        wrapper = GnosisSafeWrapper(factory.predictLenderAddress(address(safe)));
+        wrapper = factory.lender(address(safe));
         (uint256 fee, bool enabled) = wrapper.lending(wrapper.ALL_ASSETS());
         assertEq(fee, 10);
         assertEq(enabled, true);
     }
 
-    function test_myLender() external {
-        console2.log("test_myLender");
+    function test_lenderNoParams() external {
+        console2.log("test_lenderNoParams");
         vm.startPrank(address(safe));
         wrapper = factory.deploy(address(safe));
-        assertEq(factory.myLender(), address(wrapper));
+        assertEq(address(factory.lender()), address(wrapper));
         vm.stopPrank();
     }
 }
@@ -93,7 +96,7 @@ abstract contract GnosisSafeWrapperWithWrapper is GnosisSafeWrapperStateZero {
         super.setUp();
 
         vm.startPrank(address(safe));
-        wrapper = GnosisSafeWrapper(factory.myLender());
+        wrapper = factory.lender();
         safe.enableModule(address(wrapper));
         factory.lend(USDT, 10, true);
         vm.stopPrank();
