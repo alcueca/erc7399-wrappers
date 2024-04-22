@@ -2,7 +2,7 @@
 // Thanks to ultrasecr.eth
 pragma solidity ^0.8.19;
 
-import "erc7399/IERC7399.sol";
+import { IERC7399 } from "./interfaces/IERC7399.sol"; 
 
 import { IERC20Metadata as IERC20 } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
