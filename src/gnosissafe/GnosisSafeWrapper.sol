@@ -6,12 +6,13 @@ import { IGnosisSafe } from "./interfaces/IGnosisSafe.sol";
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import { Enum } from "./lib/Enum.sol";
 import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Safe Gnosis Flash Lender that uses individual Gnosis Safe contracts as source of liquidity.
-contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
+contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, ReentrancyGuard {
     error UnsupportedAsset(address asset);
     error FailedTransfer(address asset, uint256 amount);
     error InsufficientRepayment(address asset, uint256 amount);
@@ -58,11 +59,14 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
         }
     }
 
-    function _flashLoan(address asset, uint256 amount, bytes memory params) internal override {
+    /// @dev Serve a flash loan.
+    /// Because in reentrant flash loans the fees repaid would be double counted, we are making this nonReentrant.
+    /// If the Safe uses another module that expects repayments, it should be disabled during the flash loan.
+    function _flashLoan(address asset, uint256 amount, bytes memory params) internal override nonReentrant {
         Data memory decodedParams = abi.decode(params, (Data));
 
         uint256 fee = flashFee(asset, amount); // Checks for unsupported assets
-        uint256 balanceAfter = IERC20(asset).balanceOf(address(safe)) + fee;
+        uint256 safeBalance = IERC20(asset).balanceOf(address(safe));
 
         // Take assets from safe
         bytes memory transferCall =
@@ -74,8 +78,8 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
         // Call callback
         _bridgeToCallback(asset, amount, fee, params);
 
-        // Make sure assets are back in safe (TODO: think about reentrancy)
-        if (IERC20(asset).balanceOf(address(safe)) < balanceAfter) revert InsufficientRepayment(asset, amount + fee);
+        // Make sure assets are back in safe
+        if (IERC20(asset).balanceOf(address(safe)) < safeBalance + fee) revert InsufficientRepayment(asset, amount + fee);
     }
 
     /// @dev Transfer the assets to the loan receiver.
