@@ -32,6 +32,7 @@ repayment approval.
 | Aave v3                | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Arbitrum One, Optimism, Polygon                   | 212569  | 0.05%    | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Aave v3 (Permissioned) | 0x0c86c636ed5593705b5675d370c831972C787841 | Ethereum, Gnosis                                  | 229742  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Spark                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | Ethereum, Gnosis                                  | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
+| ZeroLend               | 0xA48Cc0e4159C51d73B42c824f1444D1C1cbdA531 | Ethereum                                          | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Balancer v2            | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
 | Balancer v2            | 0xD534400B0555F8441c5a3e0E9e585615B54fB2F4 | Base                                              | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
 | Uniswap v3             | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon, Ethereum         | 94720   | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |

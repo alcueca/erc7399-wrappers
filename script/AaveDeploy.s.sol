@@ -30,22 +30,29 @@ contract AaveDeploy is Script {
     bytes32 public constant SALT = keccak256("alcueca-2");
     Network public constant NETWORK = Network.MAINNET;
 
-    Registry internal registry = Registry(0x1BFf8Eee6ECF1c8155E81dba8894CE9cF49a220c);
+    Registry internal registry = Registry(0xa348320114210b8F4eaF1b0795aa8F70803a93EA);
 
     mapping(Network network => AaveDeployParams[]) public deployParams;
 
     constructor() {
+        // deployParams[Network.MAINNET].push(
+        //     AaveDeployParams({
+        //         name: "AaveV3",
+        //         addressProvider: 0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e,
+        //         poolDataProvider: address(0)
+        //     })
+        // );
+        // deployParams[Network.MAINNET].push(
+        //     AaveDeployParams({
+        //         name: "Spark",
+        //         addressProvider: 0x02C3eA4e34C0cBd694D2adFa2c690EECbC1793eE,
+        //         poolDataProvider: address(0)
+        //     })
+        // );
         deployParams[Network.MAINNET].push(
             AaveDeployParams({
-                name: "AaveV3",
-                addressProvider: 0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e,
-                poolDataProvider: address(0)
-            })
-        );
-        deployParams[Network.MAINNET].push(
-            AaveDeployParams({
-                name: "Spark",
-                addressProvider: 0x02C3eA4e34C0cBd694D2adFa2c690EECbC1793eE,
+                name: "ZeroLend",
+                addressProvider: 0xFD856E1a33225B86f70D686f9280435E3fF75FCF,
                 poolDataProvider: address(0)
             })
         );
@@ -113,15 +120,14 @@ contract AaveDeploy is Script {
             string memory key = string.concat(params.name, "Wrapper");
             console2.log(key);
             if (keccak256(registry.get(key)) != keccak256(paramsBytes)) {
-                // vm.broadcast();
-                // vm.prank(0xfA6DaAF31F8E2498b5D4C43E59c6eDd345D951F5);
-                // registry.set(key, paramsBytes);
-                console2.logBytes(abi.encodeWithSelector(registry.set.selector, key, paramsBytes));
+                console2.log("Updating registry");
+                vm.broadcast();
+                registry.set(key, paramsBytes);
             }
 
             vm.broadcast();
             AaveWrapper aaveWrapper = new AaveWrapper{ salt: SALT }(registry, params.name);
-            console2.log(" deployed at: %s", key, address(aaveWrapper));
+            console2.log("%s deployed at: %s", key, address(aaveWrapper));
         }
     }
 }
