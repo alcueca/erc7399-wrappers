@@ -34,7 +34,7 @@ repayment approval.
 | Spark                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | Ethereum, Gnosis                                  | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Balancer v2            | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
 | Balancer v2            | 0xD534400B0555F8441c5a3e0E9e585615B54fB2F4 | Base                                              | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
-| Uniswap v3             | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon                   | 94720   | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |
+| Uniswap v3             | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon, Ethereum         | 94720   | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |
 | Balancer + Moonwell    | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base                                              | 1183309 | 0        | [CompoundWrapper](src/compound/CompoundWrapper.sol)             |
 | Balancer + Sonne       | 0x6412183C579a276f467ad38468D19CC8f1F2b5cb | Optimism                                          | 1040313 | 0        | [CompoundWrapper](src/compound/CompoundWrapper.sol)             |
 | Balancer + Silo        | 0x0F9104Fec1a5C91e63632E215e8F5c57C8f32c77 | Arbitrum One                                      | 1025824 | 1        | [SiloWrapper](src/silo/SiloWrapper.sol)                         |
