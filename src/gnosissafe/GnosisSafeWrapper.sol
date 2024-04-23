@@ -79,7 +79,9 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, Reentra
         _bridgeToCallback(asset, amount, fee, params);
 
         // Make sure assets are back in safe
-        if (IERC20(asset).balanceOf(address(safe)) < safeBalance + fee) revert InsufficientRepayment(asset, amount + fee);
+        if (IERC20(asset).balanceOf(address(safe)) < safeBalance + fee) {
+            revert InsufficientRepayment(asset, amount + fee);
+        }
     }
 
     /// @dev Transfer the assets to the loan receiver.
