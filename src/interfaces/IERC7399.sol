@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC0
-pragma solidity >=0.6.4;
+pragma solidity >=0.8.19;
 
 /// @dev Specification for flash lenders compatible with ERC-7399
 interface IERC7399 {
