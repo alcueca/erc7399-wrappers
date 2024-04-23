@@ -38,5 +38,7 @@ interface IERC7399 {
         /// @param data The ABI encoded data to be passed to the callback
         /// @return result ABI encoded result of the callback
         function(address, address, address, uint256, uint256, bytes memory) external returns (bytes memory) callback
-    ) external returns (bytes memory);
+    )
+        external
+        returns (bytes memory);
 }

@@ -1,8 +1,7 @@
 # ERC7399 Flash Lender Wrappers
 
-This repository contains contracts that work as
-[ERC7399](https://github.com/ethereum/EIPs/blob/d072207e24e3cc12b6315909e6a65275a38e1984/EIPS/eip-7399.md) entry points
-for popular flash lenders.
+This repository contains contracts that work as [ERC7399](https://github.com/ethereum/ERCs/blob/master/ERCS/erc-7399.md)
+entry points for popular flash lenders.
 
 ## How Do These Wrappers Work
 
