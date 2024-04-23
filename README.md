@@ -1,8 +1,7 @@
 # ERC7399 Flash Lender Wrappers
 
-This repository contains contracts that work as
-[ERC7399](https://github.com/ethereum/EIPs/blob/d072207e24e3cc12b6315909e6a65275a38e1984/EIPS/eip-7399.md) entry points
-for popular flash lenders.
+This repository contains contracts that work as [ERC7399](https://github.com/ethereum/ERCs/blob/master/ERCS/erc-7399.md)
+entry points for popular flash lenders.
 
 ## How Do These Wrappers Work
 
@@ -52,6 +51,40 @@ Disclaimer: The gas costs are calculated for calling `flashLoan` on each wrapper
 loan amount. Calling the underlying flash lender directly may have larger gas savings in some instances than others.
 Requesting loans for different tokens or amounts might have different gas costs. For AMMs the fees often vary according
 to pool parameters and state.
+
+## Gnosis Safe Wrapper
+
+The [Gnosis Safe Wrapper](src/gnosissafe/GnosisSafeWrapper.sol) is intended for individual users to flash lend their own
+assets held in a Gnosis Safe and earn a fee. To enable it, from your own Gnosis Safe, execute a transaction bundle to
+enable the GnosisSafeWrapperFactory and set the fees for individual assets.
+
+```
+safe.enableModule(gnosisSafeWrapperFactory);
+gnosisSafeWrapperFactory.lend(asset, fee);
+...
+```
+
+or an override to lend all assets in the safe:
+
+```
+safe.enableModule(gnosisSafeWrapperFactory);
+gnosisSafeWrapperFactory.lendAll(fee);
+...
+```
+
+The `fee` parameter can be zero for free flash loans. To disable lending, execute from your safe the following command:
+
+```
+gnosisSafeWrapperFactory.disableLend(asset);
+...
+```
+
+If you set a lending override, you can disable it to go back to individual asset configuration:
+
+```
+gnosisSafeWrapperFactory.disableLendAll();
+...
+```
 
 ## Gnosis Safe Wrapper
 

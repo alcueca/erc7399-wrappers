@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "erc7399/IERC7399.sol";
+import "../src/interfaces/IERC7399.sol";
 import "src/BaseWrapper.sol";
 import { GasSnapshot } from "forge-gas-snapshot/GasSnapshot.sol";
 
