@@ -6,18 +6,21 @@ import { IGnosisSafe } from "./interfaces/IGnosisSafe.sol";
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { Enum } from "./lib/Enum.sol";
 import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Safe Gnosis Flash Lender that uses individual Gnosis Safe contracts as source of liquidity.
 contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
+    using SafeERC20 for IERC20;
+
     error UnsupportedAsset(address asset);
     error FailedTransfer(address asset, uint256 amount);
     error InsufficientRepayment(address asset, uint256 amount);
 
     event LendingDataSet(address indexed asset, uint248 fee, bool enabled);
-    event SafeSet(IGnosisSafe safe);
+    event SafeSet(IGnosisSafe indexed safe);
 
     struct LendingData {
         uint248 fee; // 1 = 0.01%
@@ -58,11 +61,11 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
         }
     }
 
+    /// @dev Serve a flash loan.
     function _flashLoan(address asset, uint256 amount, bytes memory params) internal override {
         Data memory decodedParams = abi.decode(params, (Data));
 
         uint256 fee = flashFee(asset, amount); // Checks for unsupported assets
-        uint256 balanceAfter = IERC20(asset).balanceOf(address(safe)) + fee;
 
         // Take assets from safe
         bytes memory transferCall =
@@ -74,20 +77,18 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
         // Call callback
         _bridgeToCallback(asset, amount, fee, params);
 
-        // Make sure assets are back in safe (TODO: think about reentrancy)
-        if (IERC20(asset).balanceOf(address(safe)) < balanceAfter) revert InsufficientRepayment(asset, amount + fee);
+        // Repay to the Safe. The assets are temporary held by this wrapper to support reentrancy.
+        if (IERC20(asset).balanceOf(address(this)) < amount + fee) {
+            revert InsufficientRepayment(asset, amount + fee);
+        } else {
+            IERC20(asset).safeTransfer(address(safe), amount + fee);
+        }
     }
 
     /// @dev Transfer the assets to the loan receiver.
     /// Overriden because the provider can send the funds directly
     // solhint-disable-next-line no-empty-blocks
     function _transferAssets(address, uint256, address) internal override { }
-
-    /// @dev Where should the end client send the funds to repay the loan
-    /// Overriden because the provider can receive the funds directly
-    function _repayTo() internal view override returns (address) {
-        return address(safe);
-    }
 
     /// @dev Set lending data for an asset.
     /// @param asset Address of the asset.

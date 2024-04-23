@@ -99,4 +99,12 @@ contract AaveWrapperTest is Test {
             params: ""
         });
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(dai, loan);
+        IERC20(dai).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(dai, loan, "AaveV3");
+    }
 }

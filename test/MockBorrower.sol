@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "../src/interfaces/IERC7399.sol";
 import "src/BaseWrapper.sol";
+import { GasSnapshot } from "forge-gas-snapshot/GasSnapshot.sol";
 
 contract LoanReceiver {
     using SafeERC20 for IERC20;
@@ -13,7 +14,7 @@ contract LoanReceiver {
 }
 
 /// @dev Mock flash loan borrower. It allows to examine the state of the borrower during the callback.
-contract MockBorrower {
+contract MockBorrower is GasSnapshot {
     using SafeERC20 for IERC20;
 
     bytes32 public constant ERC3156PP_CALLBACK_SUCCESS = keccak256("ERC3156PP_CALLBACK_SUCCESS");
@@ -137,6 +138,22 @@ contract MockBorrower {
         return "";
     }
 
+    function onFlashLoanMeasureGas(
+        address,
+        address paymentReceiver,
+        address asset,
+        uint256 amount,
+        uint256 fee,
+        bytes calldata
+    )
+        external
+        returns (bytes memory)
+    {
+        IERC20(asset).safeTransfer(paymentReceiver, amount + fee);
+
+        return "";
+    }
+
     function flashBorrow(address asset, uint256 amount) public returns (bytes memory) {
         return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoan);
     }
@@ -157,5 +174,18 @@ contract MockBorrower {
 
     function flashBorrowVoid(address asset, uint256 amount) public returns (bytes memory) {
         return lender.flash(address(loanReceiver), asset, amount, "", this.onFlashLoanVoid);
+    }
+
+    function flashBorrowMeasureGas(
+        address asset,
+        uint256 amount,
+        string calldata tag
+    )
+        public
+        returns (bytes memory out)
+    {
+        snapStart(tag);
+        out = lender.flash(address(this), asset, amount, "", this.onFlashLoanMeasureGas);
+        snapEnd();
     }
 }

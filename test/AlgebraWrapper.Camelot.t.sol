@@ -96,4 +96,13 @@ contract AlgebraWrapperCamelotTest is Test {
         vm.expectRevert(AlgebraWrapper.Unauthorized.selector);
         wrapper.algebraFlashCallback({ fee0: 0, fee1: 0, params: abi.encode(weth, usdc, 0, "") });
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        address token = wsteth;
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "AlgebraCamelot");
+    }
 }

@@ -115,4 +115,12 @@ contract SiloWrapperTest is Test {
         vm.expectRevert(SiloWrapper.HashMismatch.selector);
         wrapper.receiveFlashLoan(address(token).toArray(), uint256(1e18).toArray(), uint256(0).toArray(), "");
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 10_999_999_999_999_999;
+        uint256 fee = wrapper.flashFee(token, loan);
+        IERC20(token).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "Silo");
+    }
 }

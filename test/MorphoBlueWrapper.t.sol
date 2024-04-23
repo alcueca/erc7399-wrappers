@@ -91,4 +91,12 @@ contract MorphoBlueWrapperTest is Test {
         vm.expectRevert(MorphoBlueWrapper.NotMorpho.selector);
         wrapper.onMorphoFlashLoan({ amount: 0, params: "" });
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        uint256 loan = 100e18;
+        uint256 fee = wrapper.flashFee(wstETH, loan);
+        IERC20(wstETH).safeTransfer(address(borrower), fee);
+        borrower.flashBorrowMeasureGas(wstETH, loan, "MorphoBlue");
+    }
 }
