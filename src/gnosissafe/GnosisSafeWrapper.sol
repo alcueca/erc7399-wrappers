@@ -6,13 +6,15 @@ import { IGnosisSafe } from "./interfaces/IGnosisSafe.sol";
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { Enum } from "./lib/Enum.sol";
 import { BaseWrapper, IERC7399, IERC20 } from "../BaseWrapper.sol";
 
 /// @dev Safe Gnosis Flash Lender that uses individual Gnosis Safe contracts as source of liquidity.
-contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, ReentrancyGuard {
+contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable {
+    using SafeERC20 for IERC20;
+
     error UnsupportedAsset(address asset);
     error FailedTransfer(address asset, uint256 amount);
     error InsufficientRepayment(address asset, uint256 amount);
@@ -60,13 +62,10 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, Reentra
     }
 
     /// @dev Serve a flash loan.
-    /// Because in reentrant flash loans the fees repaid would be double counted, we are making this nonReentrant.
-    /// If the Safe uses another module that expects repayments, it should be disabled during the flash loan.
-    function _flashLoan(address asset, uint256 amount, bytes memory params) internal override nonReentrant {
+    function _flashLoan(address asset, uint256 amount, bytes memory params) internal override {
         Data memory decodedParams = abi.decode(params, (Data));
 
         uint256 fee = flashFee(asset, amount); // Checks for unsupported assets
-        uint256 safeBalance = IERC20(asset).balanceOf(address(safe));
 
         // Take assets from safe
         bytes memory transferCall =
@@ -78,9 +77,11 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, Reentra
         // Call callback
         _bridgeToCallback(asset, amount, fee, params);
 
-        // Make sure assets are back in safe
-        if (IERC20(asset).balanceOf(address(safe)) < safeBalance + fee) {
+        // Repay to the Safe. The assets are temporary held by this wrapper to support reentrancy.
+        if (IERC20(asset).balanceOf(address(this)) < amount + fee) {
             revert InsufficientRepayment(asset, amount + fee);
+        } else {
+            IERC20(asset).safeTransfer(address(safe), amount + fee);
         }
     }
 
@@ -88,12 +89,6 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, Reentra
     /// Overriden because the provider can send the funds directly
     // solhint-disable-next-line no-empty-blocks
     function _transferAssets(address, uint256, address) internal override { }
-
-    /// @dev Where should the end client send the funds to repay the loan
-    /// Overriden because the provider can receive the funds directly
-    function _repayTo() internal view override returns (address) {
-        return address(safe);
-    }
 
     /// @dev Set lending data for an asset.
     /// @param asset Address of the asset.
