@@ -18,7 +18,7 @@ contract GnosisSafeWrapper is BaseWrapper, AccessControl, Initializable, Reentra
     error InsufficientRepayment(address asset, uint256 amount);
 
     event LendingDataSet(address indexed asset, uint248 fee, bool enabled);
-    event SafeSet(IGnosisSafe safe);
+    event SafeSet(IGnosisSafe indexed safe);
 
     struct LendingData {
         uint248 fee; // 1 = 0.01%
