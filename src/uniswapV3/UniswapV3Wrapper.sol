@@ -25,15 +25,13 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     // DEFAULT ASSETS
     address public immutable weth;
     address public immutable usdc;
-    address public immutable usdt;
 
     /// @param reg Registry storing constructor parameters
     constructor(Registry reg) {
         // @param factory_ Uniswap v3 UniswapV3Factory address
         // @param weth_ Weth contract used in Uniswap v3 Pairs
         // @param usdc_ usdc contract used in Uniswap v3 Pairs
-        // @param usdt_ usdt contract used in Uniswap v3 Pairs
-        (factory, weth, usdc, usdt) = abi.decode(reg.getSafe("UniswapV3Wrapper"), (address, address, address, address));
+        (factory, weth, usdc) = abi.decode(reg.getSafe("UniswapV3Wrapper"), (address, address, address));
     }
 
     /**
@@ -44,14 +42,9 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
      * @return pool The Uniswap V3 Pool that will be used as the source of the flash loan.
      */
     function cheapestPool(address asset, uint256 amount) public view returns (IUniswapV3Pool pool) {
-        // Try a stable pair first
-        pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
-        if (address(pool) != address(0) && pool.canLoan(asset, amount)) return pool;
-
-        // Look for the cheapest fee otherwise
-        uint16[3] memory fees = [0.0005e6, 0.003e6, 0.01e6];
         address assetOther = asset == weth ? usdc : weth;
-        for (uint256 i = 0; i < 3; i++) {
+        uint16[4] memory fees = [0.0001e6, 0.0005e6, 0.003e6, 0.01e6];
+        for (uint256 i = 0; i < 4; i++) {
             pool = _pool(asset, assetOther, fees[i]);
             if (address(pool) != address(0) && pool.canLoan(asset, amount)) return pool;
         }
@@ -110,18 +103,12 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     }
 
     function _maxFlashLoan(address asset) internal view returns (uint256 max) {
-        // Try a stable pair first
-        IUniswapV3Pool pool = _pool(asset, asset == usdc ? usdt : usdc, 0.0001e6);
-        if (address(pool) != address(0)) {
-            max = pool.balance(asset);
-        }
-
-        uint16[3] memory fees = [0.0005e6, 0.003e6, 0.01e6];
         address assetOther = asset == weth ? usdc : weth;
-        for (uint256 i = 0; i < 3; i++) {
-            pool = _pool(asset, assetOther, fees[i]);
+        uint16[4] memory fees = [0.0001e6, 0.0005e6, 0.003e6, 0.01e6];
+        for (uint256 i = 0; i < 4; i++) {
+            IUniswapV3Pool pool = _pool(asset, assetOther, fees[i]);
             uint256 _balance = pool.balance(asset);
-            if (address(pool) != address(0) && _balance > max) {
+            if (address(pool) != address(0) && pool.liquidity() > 0 && _balance > max) {
                 max = _balance;
             }
         }
@@ -135,7 +122,7 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
 }
 
 function canLoan(IUniswapV3Pool pool, address asset, uint256 amount) view returns (bool) {
-    return balance(pool, asset) >= amount;
+    return balance(pool, asset) >= amount && pool.liquidity() > 0;
 }
 
 function balance(IUniswapV3Pool pool, address asset) view returns (uint256) {

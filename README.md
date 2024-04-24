@@ -44,7 +44,7 @@ repayment approval.
 | Camelot                | 0x5E8820B2832aD8451f65Fa2CCe2F3Cef29016D0d | Arbitrum One                                      | 80679   | 0.01%    | [AlgebraWrapper](src/algebra/AlgebraWrapper.sol)                |
 | Camelot + Pendle       | 0xC9d66F655b7B35A2B4958bE2FB58E472736Bbc47 | Arbitrum One                                      | 506792  | 0.01%    | [AlgebraPendleWrapper](src/pendle/AlgebraPendleWrapper.sol)     |
 | Balancer + Pendle      | 0xC1Ea6a6df39D991006b39706db7C51f5A1819da7 | Arbitrum One                                      | 525422  | 0        | [BalancerPendleWrapper](src/pendle/BalancerPendleWrapper.sol)   |
-| Uniswap v3 + Pendle    | 0xa353Fd50210786F0E038ddD574A21d0CCefb3163 | Arbitrum One                                      | 497567  | Variable | [UniswapV3PendleWrapper](src/pendle/UniswapV3PendleWrapper.sol) |
+| Uniswap v3 + Pendle    | 0xd652e854b1a387140889D95beBC9142a0895e667 | Arbitrum One                                      | 497567  | Variable | [UniswapV3PendleWrapper](src/pendle/UniswapV3PendleWrapper.sol) |
 | Aerodrome              | 0x69b6E55f00d908018E2D745c524995bc231D762b | Base                                              | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 | Velodrome              | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 

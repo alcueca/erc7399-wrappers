@@ -125,7 +125,7 @@ contract UniswapV3PendleWrapper is BasePendleWrapper, IUniswapV3FlashCallback, A
         for (uint256 i = 0; i < 4; i++) {
             IUniswapV3Pool __pool = _pool(asset, fees[i]);
             uint256 _balance = __pool.balance(asset);
-            if (address(__pool) != address(0) && _balance > poolBalance) {
+            if (address(__pool) != address(0) && __pool.liquidity() > 0 && _balance > poolBalance) {
                 pool = __pool;
                 poolBalance = _balance;
                 poolFee = fees[i];
@@ -140,7 +140,7 @@ contract UniswapV3PendleWrapper is BasePendleWrapper, IUniswapV3FlashCallback, A
 }
 
 function canLoan(IUniswapV3Pool pool, address asset, uint256 amount) view returns (bool) {
-    return balance(pool, asset) >= amount;
+    return balance(pool, asset) >= amount && pool.liquidity() > 0;
 }
 
 function balance(IUniswapV3Pool pool, address asset) view returns (uint256) {

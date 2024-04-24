@@ -40,7 +40,7 @@ contract UniswapV3PendleWrapperTest is Test {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 199_563_251 });
+        vm.createSelectFork({ urlOrAlias: "arbitrum_one", blockNumber: 204_382_544 });
         factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
         pendleRouter = IPendleRouterV3(0x00000000005BBB0EF59571E58418F9a4357b68A0);
         weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
@@ -64,21 +64,21 @@ contract UniswapV3PendleWrapperTest is Test {
         token = 0x8EA5040d423410f1fdc363379Af88e1DB5eA1C34; // PT-ezETH-27JUN2024
         underlying = 0x2416092f143378750bb29b79eD961ab195CcEea5;
 
-        test_maxFlashLoan(103.703691885699322816e18);
+        test_maxFlashLoan(25.571331873721834032e18);
     }
 
     function test_maxFlashLoan_PTeETH() external {
         token = 0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4; // PT-eETH-27JUN2024
         underlying = 0x35751007a407ca6FEFfE80b3cB397736D2cf4dbe;
 
-        test_maxFlashLoan(116.621531724330957646e18);
+        test_maxFlashLoan(278.935838876776410741e18);
     }
 
     function test_maxFlashLoan_PTrsETH() external {
         token = 0xAFD22F824D51Fb7EeD4778d303d4388AC644b026; // PT-rsETH-27JUN2024
         underlying = 0x4186BFC76E2E237523CBC30FD220FE055156b41F;
 
-        test_maxFlashLoan(8.816052000596960554e18);
+        test_maxFlashLoan(8.986835885934438101e18);
     }
 
     function test_maxFlashLoan(uint256 expected) internal {
