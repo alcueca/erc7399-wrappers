@@ -73,4 +73,13 @@ contract ERC3156WrapperTest is Test {
             // borrowed
         assertEq(borrower.flashFee(), fee);
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        address token = dai;
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "MakerDAO");
+    }
 }
