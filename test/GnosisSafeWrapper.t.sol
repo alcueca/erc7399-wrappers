@@ -195,4 +195,13 @@ contract GnosisSafeWrapperWithWrapperTest is GnosisSafeWrapperWithWrapper {
         vm.expectRevert(abi.encodeWithSelector(GnosisSafeWrapper.UnsupportedAsset.selector, USDT));
         borrower.flashBorrow(USDT, 1);
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        address token = USDT;
+        uint256 loan = 10e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "GnosisSafe");
+    }
 }

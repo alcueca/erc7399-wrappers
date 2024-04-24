@@ -105,4 +105,13 @@ contract CompoundWrapperTest is Test {
 
         wrapper.setCToken(IERC20(dai), ICToken(address(0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643)));
     }
+
+    function test_measureFlashLoanGas() public {
+        console2.log("test_measureFlashLoanGas");
+        address token = dai;
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(address(token), address(borrower), fee);
+        borrower.flashBorrowMeasureGas(token, loan, "BalancerCompound");
+    }
 }
