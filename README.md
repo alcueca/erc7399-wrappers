@@ -29,11 +29,13 @@ repayment approval.
 
 | Lender                 | Address                                    | Networks                                          | Gas     | Fees     | Contract                                                        |
 | ---------------------- | ------------------------------------------ | ------------------------------------------------- | ------- | -------- | --------------------------------------------------------------- |
+| Aave v2                |                                            |                                                   | 262190  | 0.05%    | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Aave v3                | 0x9D4D2C08b29A2Db1c614483cd8971734BFDCC9F2 | Arbitrum One, Optimism, Polygon                   | 212569  | 0.05%    | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Aave v3 (Permissioned) | 0x0c86c636ed5593705b5675d370c831972C787841 | Ethereum, Gnosis                                  | 229742  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Aerodrome              | 0x69b6E55f00d908018E2D745c524995bc231D762b | Base                                              | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 | Balancer v2            | 0x9E092cb431e5F1aa70e47e052773711d2Ba4917E | Ethereum, Arbitrum One, Optimism, Polygon, Gnosis | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
 | Balancer v2            | 0xD534400B0555F8441c5a3e0E9e585615B54fB2F4 | Base                                              | 113032  | 0        | [BalancerWrapper](src/balancer/BalancerWrapper.sol)             |
+| Balancer + Compound v2 |                                            |                                                   | 836719  | 0        | [CompoundWrapper](src/compound/CompoundWrapper.sol)             |
 | Balancer + Moonwell    | 0x6207ec38da68902CC60D3760c9fe3EB64B426207 | Base                                              | 1183309 | 0        | [CompoundWrapper](src/compound/CompoundWrapper.sol)             |
 | Balancer + Pendle      | 0xC1Ea6a6df39D991006b39706db7C51f5A1819da7 | Arbitrum One                                      | 525422  | 0        | [BalancerPendleWrapper](src/pendle/BalancerPendleWrapper.sol)   |
 | Balancer + Silo        | 0x0F9104Fec1a5C91e63632E215e8F5c57C8f32c77 | Arbitrum One                                      | 1025824 | 1        | [SiloWrapper](src/silo/SiloWrapper.sol)                         |
