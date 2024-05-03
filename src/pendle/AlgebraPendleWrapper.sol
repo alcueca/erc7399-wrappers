@@ -54,6 +54,8 @@ contract AlgebraPendleWrapper is BasePendleWrapper, IAlgebraFlashCallback, Acces
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
+        if (IPPrincipalToken(asset).isExpired()) return 0;
+
         IERC20 underlying = IPPrincipalToken(asset).SY().yieldToken();
         (IAlgebraPool pool,) = _pool(address(underlying));
         uint256 poolBalance = underlying.balanceOf(address(pool));
