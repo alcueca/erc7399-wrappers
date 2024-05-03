@@ -30,7 +30,7 @@ contract MorphoBlueWrapper is BaseWrapper, IMorphoFlashLoanCallback {
         return amount >= max ? type(uint256).max : 0;
     }
 
-    function onMorphoFlashLoan(uint256 amount, bytes calldata params) external {
+    function onMorphoFlashLoan(uint256 amount, bytes calldata params) external override {
         if (msg.sender != address(morpho)) revert NotMorpho();
         (address asset, bytes memory data) = abi.decode(params, (address, bytes));
 
