@@ -40,6 +40,7 @@ contract BalancerPendleWrapper is BasePendleWrapper, IFlashLoanRecipient {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
+        if (IPPrincipalToken(asset).isExpired()) return 0;
         return IPPrincipalToken(asset).SY().yieldToken().balanceOf(address(balancer));
     }
 

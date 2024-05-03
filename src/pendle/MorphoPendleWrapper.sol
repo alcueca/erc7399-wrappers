@@ -30,8 +30,8 @@ contract MorphoPendleWrapper is BasePendleWrapper, IMorphoFlashLoanCallback {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
-        IPPrincipalToken pt = IPPrincipalToken(asset);
-        return pt.isExpired() ? 0 : pt.SY().yieldToken().balanceOf(address(morpho));
+        if (IPPrincipalToken(asset).isExpired()) return 0;
+        return IPPrincipalToken(asset).SY().yieldToken().balanceOf(address(morpho));
     }
 
     /// @inheritdoc IERC7399

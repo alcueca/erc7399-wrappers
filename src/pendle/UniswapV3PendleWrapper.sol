@@ -62,6 +62,8 @@ contract UniswapV3PendleWrapper is BasePendleWrapper, IUniswapV3FlashCallback, A
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) public view returns (uint256) {
+        if (IPPrincipalToken(asset).isExpired()) return 0;
+
         IERC20 underlying = IPPrincipalToken(asset).SY().yieldToken();
         (, uint256 poolBalance, uint24 poolFee) = _maxFlashLoan(address(underlying));
         if (poolBalance == 0) return 0;
