@@ -29,13 +29,13 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
 
     /// @inheritdoc IERC7399
     function maxFlashLoan(address asset) external view returns (uint256) {
-        IERC3156FlashLender lender = lenders[asset];
+        IERC3156FlashLender lender = _lender(asset);
         return address(lender) != address(0) ? _maxFlashLoan(lender, asset) : 0;
     }
 
     /// @inheritdoc IERC7399
     function flashFee(address asset, uint256 amount) external view returns (uint256) {
-        IERC3156FlashLender lender = lenders[asset];
+        IERC3156FlashLender lender = _lender(asset);
         require(address(lender) != address(0), "Unsupported currency");
         return amount >= _maxFlashLoan(lender, asset) ? type(uint256).max : _flashFee(lender, asset, amount);
     }
@@ -52,7 +52,7 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
         returns (bytes32)
     {
         require(erc3156initiator == address(this), "External loan initiator");
-        require(msg.sender == address(lenders[asset]), "Unknown lender");
+        require(msg.sender == address(_lender(asset)), "Unknown lender");
 
         _bridgeToCallback(asset, amount, fee, params);
 
@@ -60,7 +60,7 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
     }
 
     function _flashLoan(address asset, uint256 amount, bytes memory data) internal override {
-        IERC3156FlashLender lender = lenders[asset];
+        IERC3156FlashLender lender = _lender(asset);
         require(address(lender) != address(0), "Unsupported currency");
 
         // We get funds from an ERC3156 lender to serve the ERC7399 flash loan in our ERC3156 callback
@@ -73,5 +73,10 @@ contract ERC3156Wrapper is BaseWrapper, IERC3156FlashBorrower {
 
     function _flashFee(IERC3156FlashLender lender, address asset, uint256 amount) internal view returns (uint256) {
         return lender.flashFee(asset, amount);
+    }
+
+    function _lender(address asset) internal view returns (IERC3156FlashLender lender) {
+        lender = lenders[asset];
+        if (address(lender) == address(0)) lender = IERC3156FlashLender(asset);
     }
 }
