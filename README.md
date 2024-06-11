@@ -46,6 +46,7 @@ repayment approval.
 | Gnosis Safe            |                                            |                                                   | 109223  | Variable | [GnosisSafeWrapper](src/gnosisSafe/GnosisSafeWrapper.sol)       |
 | MakerDAO               |                                            |                                                   | 313172  | 0        | [ERC3156Wrapper](src/erc3156/ERC3156Wrapper.sol)                |
 | MorphoBlue             | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          | 132114  | 0        | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)           |
+| MorphoBlue             | 0xd0953257A5a2603Bf9fCA8aF1F2ecdac60EB8F52 | Base                                              | 132114  | 0        | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)           |
 | MorphoBlue + Pendle    | 0xE1f9e06006B2592dDe5b1bBA3ae2DD34DF557007 | Ethereum                                          | 558536  | 0        | [MorphoPendleWrapper](src/pendle/MorphoPendleWrapper.sol)       |
 | Spark                  | 0x8cB701df93f2Dae295aE8D7beE5Aa7e4D40CB397 | Ethereum, Gnosis                                  | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | Uniswap v3             | 0x319300462C37AD2D4f26B584C2b67De51F51f289 | Arbitrum One, Optimism, Polygon, Ethereum         | 94720   | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |
