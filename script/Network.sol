@@ -17,17 +17,25 @@ function currentNetwork() view returns (Network) {
     return Network.wrap(block.chainid);
 }
 
-function toString(Network n) pure returns (string memory) {
-    if (Network.unwrap(n) == Network.unwrap(MAINNET)) return "Ethereum";
-    if (Network.unwrap(n) == Network.unwrap(OPTIMISM)) return "Optimism";
-    if (Network.unwrap(n) == Network.unwrap(GNOSIS)) return "Gnosis";
-    if (Network.unwrap(n) == Network.unwrap(POLYGON)) return "Polygon";
-    if (Network.unwrap(n) == Network.unwrap(BASE)) return "Base";
-    if (Network.unwrap(n) == Network.unwrap(ARBITRUM)) return "Arbitrum-One";
-    if (Network.unwrap(n) == Network.unwrap(BSC)) return "Binance Smart Chain";
-    if (Network.unwrap(n) == Network.unwrap(AVALANCHE)) return "Avalanche C-Chain";
-    if (Network.unwrap(n) == Network.unwrap(SCROLL)) return "Scroll";
-    revert("Unknown network");
+function _equals(Network a, Network b) pure returns (bool) {
+    return Network.unwrap(a) == Network.unwrap(b);
 }
 
-using { toString } for Network global;
+function _ne(Network a, Network b) pure returns (bool) {
+    return !_equals(a, b);
+}
+
+using { toString, _equals as ==, _ne as != } for Network global;
+
+function toString(Network n) pure returns (string memory) {
+    if (n == MAINNET) return "Ethereum";
+    if (n == OPTIMISM) return "Optimism";
+    if (n == GNOSIS) return "Gnosis";
+    if (n == POLYGON) return "Polygon";
+    if (n == BASE) return "Base";
+    if (n == ARBITRUM) return "Arbitrum-One";
+    if (n == BSC) return "Binance Smart Chain";
+    if (n == AVALANCHE) return "Avalanche C-Chain";
+    if (n == SCROLL) return "Scroll";
+    revert("Unknown network");
+}

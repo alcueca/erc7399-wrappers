@@ -28,12 +28,12 @@ contract UniswapV3Wrapper is BaseWrapper, IUniswapV3FlashCallback {
     address public immutable usdt;
 
     /// @param reg Registry storing constructor parameters
-    constructor(Registry reg) {
+    constructor(string memory name, Registry reg) {
         // @param factory_ Uniswap v3 UniswapV3Factory address
         // @param weth_ Weth contract used in Uniswap v3 Pairs
         // @param usdc_ usdc contract used in Uniswap v3 Pairs
         // @param usdt_ usdt contract used in Uniswap v3 Pairs
-        (factory, weth, usdc, usdt) = abi.decode(reg.getSafe("UniswapV3Wrapper"), (address, address, address, address));
+        (factory, weth, usdc, usdt) = abi.decode(reg.getSafe(name), (address, address, address, address));
     }
 
     /**
