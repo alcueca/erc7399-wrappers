@@ -54,7 +54,7 @@ repayment approval.
 | Canonical              | 0x6962ba38D6493B9Ed7E0a4b74624c43D844E1438 | Optimism                                          | 94720   | Variable | [UniswapV3Wrapper](src/uniswapV3/UniswapV3Wrapper.sol)          |
 | Uniswap v3 + Pendle    | 0xa353Fd50210786F0E038ddD574A21d0CCefb3163 | Arbitrum One                                      | 497567  | Variable | [UniswapV3PendleWrapper](src/pendle/UniswapV3PendleWrapper.sol) |
 | Velodrome              | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
-| ZeroLend               | 0xA48Cc0e4159C51d73B42c824f1444D1C1cbdA531 | Ethereum                                          | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
+| ZeroLend               | 0xA48Cc0e4159C51d73B42c824f1444D1C1cbdA531 | Ethereum, Linea                                   | 212569  | 0        | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 
 Disclaimer: The gas costs are calculated for calling `flashLoan` on each wrapper for an arbitrarily chosen token and
 loan amount. Gas refunds are not taken into account and might be significant in some cases. Calling the underlying flash

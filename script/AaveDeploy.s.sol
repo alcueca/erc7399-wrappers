@@ -18,7 +18,8 @@ contract AaveDeploy is Script {
         POLYGON,
         OPTIMISM,
         BASE,
-        GNOSIS
+        GNOSIS,
+        LINEA
     }
 
     struct AaveDeployParams {
@@ -28,7 +29,7 @@ contract AaveDeploy is Script {
     }
 
     bytes32 public constant SALT = keccak256("alcueca-2");
-    Network public constant NETWORK = Network.MAINNET;
+    Network public constant NETWORK = Network.LINEA;
 
     Registry internal registry = Registry(0xa348320114210b8F4eaF1b0795aa8F70803a93EA);
 
@@ -95,6 +96,13 @@ contract AaveDeploy is Script {
             AaveDeployParams({
                 name: "Spark",
                 addressProvider: 0xA98DaCB3fC964A6A0d2ce3B77294241585EAbA6d,
+                poolDataProvider: address(0)
+            })
+        );
+        deployParams[Network.LINEA].push(
+            AaveDeployParams({
+                name: "ZeroLend",
+                addressProvider: 0xC44827C51d00381ed4C52646aeAB45b455d200eB,
                 poolDataProvider: address(0)
             })
         );
