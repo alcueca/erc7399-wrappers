@@ -29,7 +29,7 @@ contract ERC3156WrapperTest is Test {
             revert("API_KEY_ALCHEMY variable missing");
         }
 
-        vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 16_428_000 });
+        vm.createSelectFork({ urlOrAlias: "mainnet", blockNumber: 20_563_484 });
         makerFlash = IERC3156FlashLender(0x60744434d6339a6B27d73d9Eda62b6F66a0a04FA);
         dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
 
@@ -50,7 +50,7 @@ contract ERC3156WrapperTest is Test {
 
     function test_maxFlashLoan() external {
         console2.log("test_maxFlashLoan");
-        assertEq(wrapper.maxFlashLoan(dai), 250_000_000.0e18, "Max flash loan not zero");
+        assertEq(wrapper.maxFlashLoan(dai), 500_000_000.0e18, "Max flash loan");
     }
 
     function test_flashLoan() external {
@@ -80,5 +80,27 @@ contract ERC3156WrapperTest is Test {
         uint256 fee = wrapper.flashFee(token, loan);
         deal(address(token), address(borrower), fee);
         borrower.flashBorrowMeasureGas(token, loan, "MakerDAO");
+    }
+
+    function test_flashMint() public {
+        console2.log("test_flashMint");
+        address token = 0x183015a9bA6fF60230fdEaDc3F43b3D788b13e21;
+        uint256 loan = 1e18;
+        uint256 fee = wrapper.flashFee(token, loan);
+        deal(token, address(this), 1e18); // For fees
+        IERC20(token).safeTransfer(address(borrower), fee);
+        bytes memory result = borrower.flashBorrow(token, loan);
+
+        // Test the return values passed through the wrapper
+        (bytes32 callbackReturn) = abi.decode(result, (bytes32));
+        assertEq(uint256(callbackReturn), uint256(borrower.ERC3156PP_CALLBACK_SUCCESS()), "Callback failed");
+
+        // Test the borrower state during the callback
+        assertEq(borrower.flashInitiator(), address(borrower));
+        assertEq(address(borrower.flashAsset()), address(token));
+        assertEq(borrower.flashAmount(), loan);
+        assertEq(borrower.flashBalance(), loan + fee); // The amount we transferred to pay for fees, plus the amount we
+            // borrowed
+        assertEq(borrower.flashFee(), fee);
     }
 }

@@ -43,7 +43,7 @@ contract UniswapV3WrapperTest is Test {
 
         Registry registry = new Registry(address(this).toArray(), address(this).toArray());
         registry.set("UniswapV3Wrapper", abi.encode(address(factory), weth, usdc, usdt));
-        wrapper = new UniswapV3Wrapper(registry);
+        wrapper = new UniswapV3Wrapper("UniswapV3Wrapper", registry);
         borrower = new MockBorrower(wrapper);
     }
 
