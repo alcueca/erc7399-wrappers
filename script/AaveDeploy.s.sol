@@ -29,7 +29,7 @@ contract AaveDeploy is Script {
     }
 
     bytes32 public constant SALT = keccak256("alcueca-2");
-    Network public constant NETWORK = Network.LINEA;
+    Network public constant NETWORK = Network.MAINNET;
 
     Registry internal registry = Registry(0xa348320114210b8F4eaF1b0795aa8F70803a93EA);
 
@@ -50,10 +50,17 @@ contract AaveDeploy is Script {
         //         poolDataProvider: address(0)
         //     })
         // );
+        // deployParams[Network.MAINNET].push(
+        //     AaveDeployParams({
+        //         name: "ZeroLend",
+        //         addressProvider: 0xFD856E1a33225B86f70D686f9280435E3fF75FCF,
+        //         poolDataProvider: address(0)
+        //     })
+        // );
         deployParams[Network.MAINNET].push(
             AaveDeployParams({
-                name: "ZeroLend",
-                addressProvider: 0xFD856E1a33225B86f70D686f9280435E3fF75FCF,
+                name: "ZeroLendBTC",
+                addressProvider: 0x17878AFdD5772F4Ec93c265Ac7Ad8E2b29abB857,
                 poolDataProvider: address(0)
             })
         );
