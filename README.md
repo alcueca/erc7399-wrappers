@@ -56,7 +56,8 @@ repayment approval.
 | Velodrome                     | 0xcF13CDdbA3aEf757c52466deC310F221e06238d6 | Optimism                                          | 163919  | Variable | [SolidlyWrapper](src/solidly/SolidlyWrapper.sol)                |
 | ZeroLend                      | 0xA48Cc0e4159C51d73B42c824f1444D1C1cbdA531 | Ethereum, Linea                                   | 212569  | Variable | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
 | ZeroLendBTC                   | 0xB21a09be03Ce5318b3f3089665D917aFfA0aeA90 | Ethereum                                          | 212569  | Variable | [AaveWrapper](src/aave/AaveWrapper.sol)                         |
-| ERC3156 (DAI, GHO, FlashMint) | 0x255bAFe2122722FC35E33cd503f4f0E722AB98fC | Ethereum                                          | 279102  | Variable | [AaveWrapper](src/erc3156/ERC3156Wrapper.sol)                   |
+| ERC3156 (DAI, GHO, FlashMint) | 0x255bAFe2122722FC35E33cd503f4f0E722AB98fC | Ethereum                                          | 279102  | Variable | [ERC3156Wrapper](src/erc3156/ERC3156Wrapper.sol)                |
+| ERC3156 (FlashMint)           | 0xDDA4104c96Df0cf7af14856473F597362211Dfa1 | Arbitrum                                          | 279102  | Variable | [ERC3156Wrapper](src/erc3156/ERC3156Wrapper.sol)                |
 
 Disclaimer: The gas costs are calculated for calling `flashLoan` on each wrapper for an arbitrarily chosen token and
 loan amount. Gas refunds are not taken into account and might be significant in some cases. Calling the underlying flash
