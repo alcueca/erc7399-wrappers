@@ -15,7 +15,7 @@
   optimizer_runs = 10_000
   out = "out"
   script = "script"
-  solc = "0.8.26"
+  solc = "0.8.30"
   src = "src"
   test = "test"
   verbosity = 2
@@ -34,6 +34,8 @@
   optimism = { key = "${API_KEY_OPTIMISTIC_ETHERSCAN}", chain = 10 }
   polygon = { key = "${API_KEY_POLYGONSCAN}", chain = 137 }
   # sepolia = { key = "${API_KEY_ETHERSCAN}", chain = 58008 }
+  base = { key = "${BASE_API_KEY}", chain = 8453 }
+  berachain = { key = "${BERACHAIN_API_KEY}", chain = 80094 }
 
 [fmt]
   bracket_spacing = true

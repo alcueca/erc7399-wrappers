@@ -43,6 +43,7 @@ repayment approval.
 | Camelot                       | 0x5E8820B2832aD8451f65Fa2CCe2F3Cef29016D0d | Arbitrum One                                      | 80679   | 0.01%    | [AlgebraWrapper](src/algebra/AlgebraWrapper.sol)                |
 | Camelot + Pendle              | 0xC9d66F655b7B35A2B4958bE2FB58E472736Bbc47 | Arbitrum One                                      | 506792  | 0.01%    | [AlgebraPendleWrapper](src/pendle/AlgebraPendleWrapper.sol)     |
 | Dolomite                      | 0x54F1ce5E6bdf027C9a6016C9F52fC5A445b77ed6 | Arbitrum One                                      | 459815  | 0        | [DolomiteWrapper](src/dolomite/DolomiteWrapper.sol)             |
+| Euler                         |                                            | Base, Berachain, Ethereum                         | 399324  | 0        | [EulerWrapper](src/euler/EulerWrapper.sol)                      |
 | Gnosis Safe                   |                                            |                                                   | 109223  | Variable | [GnosisSafeWrapper](src/gnosisSafe/GnosisSafeWrapper.sol)       |
 | MakerDAO                      |                                            |                                                   | 313172  | 0        | [ERC3156Wrapper](src/erc3156/ERC3156Wrapper.sol)                |
 | MorphoBlue                    | 0xa0Cb4e1222d813D6e4dE79f2A7A0B7759209588F | Ethereum                                          | 132114  | 0        | [MorphoBlueWrapper](src/morpho/MorphoBlueWrapper.sol)           |

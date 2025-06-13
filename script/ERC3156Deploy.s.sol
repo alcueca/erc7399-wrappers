@@ -32,7 +32,7 @@ contract ERC3156Deploy is Script {
         lenders[0] = IERC3156FlashLender(0x60744434d6339a6B27d73d9Eda62b6F66a0a04FA);
         lenders[1] = IERC3156FlashLender(0xb639D208Bcf0589D54FaC24E655C79EC529762B8);
         deployments.push(Deployment(MAINNET, assets, lenders));
-        
+
         deployments.push(Deployment(ARBITRUM, noAssets, noLenders));
     }
 

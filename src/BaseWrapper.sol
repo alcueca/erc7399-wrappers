@@ -26,6 +26,7 @@ abstract contract BaseWrapper is IERC7399 {
     using SafeERC20 for IERC20;
     using TransientBytes for bytes;
     using TransientBytes for bytes32;
+
     struct Data {
         address loanReceiver;
         address initiator;
